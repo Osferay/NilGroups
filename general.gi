@@ -41,6 +41,7 @@ end );
 InstallGlobalFunction( TauVector, function(G)
 
     local   pcp,
+            i,j,k,  #Bucle variables
             v, 
             h;       #Hirsch number of G.
 
@@ -68,7 +69,8 @@ InstallGlobalFunction( MatrixRelationsByVector, function(v,h)
 
     local   t,      #Matrix of relations
             cont,   #count of the iteration
-            N;      #Auxiliar matrix
+            N,      #Auxiliar matrix
+            i,j,k;  #Bucle variables
 
     cont := 1;
     t := [];
@@ -95,9 +97,10 @@ end );
 InstallGlobalFunction( TauGroupByVector, function(v,h)
 
     local   cont,   #Count of iteration
-            flt,    #Collector of relations
-            rels,   #Variable auxiliar
-            G;      #Group to return
+            ftl,    #Collector of relations
+            rel,    #Variable auxiliar
+            G,      #Group to return
+            i,j,k;  #Bucle variables
 
     #Create the relations
     ftl := FromTheLeftCollector(h);

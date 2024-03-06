@@ -5,6 +5,7 @@
 InstallGlobalFunction( "IsolatorSeries", function(G)
 
     local   C,      #Torsion subgroup
+            i,      #bucle variable
             nat,    #Natural homomorphism G-->G/N 
             S,      #Isolator central series of G
             lcs;    #Lower central series of G
@@ -31,6 +32,7 @@ end );
 InstallGlobalFunction( "TauType", function(G)
 
     local   ics,
+            i,      #bucle variable
             t;
 
     ics := IsolatorSeries(G);
@@ -82,6 +84,7 @@ end );
 InstallGlobalFunction( "ExtendedTauType", function(G)
 
     local   eis,
+            i,      #bucle variable
             t;
 
     eis := ExtendedIsolatorSeries(G);

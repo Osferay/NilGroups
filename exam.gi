@@ -13,6 +13,8 @@ InstallGlobalFunction( MinimalTauGroups, function(h, c, n)
             ftl,                    #Collector of relations
             rel,                    #Auxiliar variable to store each relation
             e,d,a,r,U,v,g,w,m,b,s,u,#Auxiliar variables
+            l,B,
+            i,j,k,                  #bucle variable
             TauT,                   #Stores the type of the group
             G;                      #Stores the group to return
 

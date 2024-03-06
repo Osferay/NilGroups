@@ -11,7 +11,8 @@ InstallGlobalFunction( "CentralizerFGNil", function(G,g)
             LN,     #factor L/Gi
             gens,   #Generators L/Gi
             imgs,   #gens -> [g,gen]
-            f,      #homomorphism L/Gi -> G(i-1)/Gi 
+            i,      #Bucle variables
+            f;      #homomorphism L/Gi -> G(i-1)/Gi 
 
     efa := PcpsOfEfaSeries(G);
     C := G;
@@ -78,7 +79,7 @@ InstallGlobalFunction( "CanonicalConjugate", function(G, g)
             N,      #Gi
             nat,    #Natural homomorphism G -> G/Gi
             M,      #G(i-1)
-            gGi,    #Image g->nat(g)=gGi
+            hGi,    #Image g->nat(g)=gGi
             fac,    #factor G(i-1)/Gi
             LN,     #factor L/Gi
             gens,   #Generators L/Gi
@@ -86,6 +87,7 @@ InstallGlobalFunction( "CanonicalConjugate", function(G, g)
             f,      #homomorphism L/Gi -> G(i-1)/Gi 
             e,      #exponent vector of f(L)
             t,      #element in L/Gi such that f(t)=generator(f(L))
+            i,j,  #Bucle variable
             l;      #element in L such that nat(l)=t
 
     efa := PcpsOfEfaSeries(G);
