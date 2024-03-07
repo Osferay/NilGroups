@@ -1,4 +1,8 @@
-InstallGlobalFunction( "CentralizerFGNil", function(G,g)
+####################################################################
+## Global function to calculate the centralizer of g in G         ##
+####################################################################
+
+InstallGlobalFunction( "CentralizerNilGroup", function(G,g)
 
     local   efa,    #Elementary/Free abelian series of G
             C,      #Centralizer of G/Gi
@@ -69,6 +73,117 @@ InstallGlobalFunction( "CentralizerFGNil", function(G,g)
 
 end );
 
+####################################################################
+## Local function to the preimage of the conjugating element      ##
+####################################################################
+
+PreImageConjugate := function(G, img, nat, gens, imgs, i)
+
+    local   e,
+            vAi,
+            v;
+
+    #We have U={g1,...,gn} and f(gi)=g^ei then we want
+    #Find e=(e1,...,en) of f(U)={g^e1,...,g^en}
+    e := [];
+    for j in [1..Length(imgs)] do
+        Add(e, Exponents(imgs[j])[i]);
+    od;
+
+    #As f(U)=g^(gcd(e1,...,en)) we have f(g-1*k)=g^n with gcd(e1,...,en)|n
+    #we can find a vector x1,...,xn such that f(g1^x1...gn^xn)=g^n
+    e := GcdRepresentation(e)*( Exponents( Image( nat, img )  )[i] / Gcd( e ) );
+
+    #Using the vector x1,...,xn we find uAi=g1^x1...gn^xnAi
+    vAi := Identity( Image(nat) );
+    for j in [1..Length(e)] do
+        vAi := vAi*gens[j]^e[j];
+    od;
+
+    #Now we find v such that nat(v)= vAi            
+    v := Identity(G);
+    for j in [1..Length(Exponents(vAi))] do
+        v := v*Cgs(G)[j]^(Exponents(vAi))[j];
+    od;
+    
+    return v^-1;
+
+end;
+
+####################################################################
+## Global function to check if g and h are conjugate in G         ##
+####################################################################
+
+InstallGlobalFunction( "IsConjugateNilGroup", function(G,g,h)
+
+    local   efa,    #efa series of G
+            U,      #Inverse image of the centralizer
+            v,      #Conjugating on each step
+            vAi,    #Image of the conjugating element
+            k,      #Conjugate on each step
+            exps,   #Storage of the exponents
+            nat,    #Natural homomorphism G->G/Gi
+            fac,    #Factor G(i-1)/Gi
+            gens,   #Generators of U/Ai
+            imgs,   #Generators of f(U/Ai)
+            f;      #Group homomorphism
+
+    efa  := EfaSeries(G);
+    U    := G;
+    exps := [];
+    k    := h;
+
+    #Catch trivial case
+    nat := NaturalHomomorphismByNormalSubgroup(G, efa[2]);
+    if Image(nat, k) <> Image(nat, h) then
+        return rec( conj := Identity(G), state := false );
+    fi;
+
+    for i in [2..Length(efa)-1] do
+
+        #Take G/Gi
+        nat := NaturalHomomorphismByNormalSubgroup(G, efa[i+1]);
+
+        #Take G(i-1)/Gi
+        fac := Image( nat, efa[i] );
+
+        #Create the homomorpism f:U/Gi -> G(i-1)/Gi
+        gens:= Igs( Image( nat, U ) );
+        imgs := List( gens , x -> Comm( Image(nat, g) ,x) );
+        f   := GroupHomomorphismByImages( Image( nat, U ), fac, gens, imgs);
+        
+        #Check if (g^-1*k)Ai in f(U/Ai)
+        if Image( nat, g^-1*k )  = Identity( Image(nat) ) then
+        
+            #In this case we don't have to do anything but as gives problems with 0/0 we have to diferenciate
+
+        elif Image( nat, g^-1*k ) in Image(f) then
+            
+            v := PreImageConjugate(G, g^-1*k, nat, gens, imgs, i);
+            Add(exps, v);
+            k := k^v;
+
+        else
+            return rec( conj := Identity(G), state := false );
+        fi;
+
+        U   := PreImage(nat, CentralizerNilGroup( Image(nat), Image(nat, g) ) );
+    od;
+
+    v := Identity(G);
+    for i in exps do
+        v := v*i;
+    od;
+
+    #Check the result is correct
+    if not h^v=g then
+        Error(" The function is not working properly. ");
+    fi;
+
+    #Return the result
+    return rec( conj := v, state := true );
+
+end );
 
 InstallGlobalFunction( "CanonicalConjugate", function(G, g)
 

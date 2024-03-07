@@ -23,7 +23,8 @@ DeclareGlobalFunction( "IsomorphismTauGroup" );
 DeclareGlobalFunction( "SameGenus" );
 
 ### conjugacy.gi
-DeclareGlobalFunction( "CentralizerFGNil" );
+DeclareGlobalFunction( "CentralizerNilGroup" );
+DeclareGlobalFunction( "IsConjugateNilGroup" );
 DeclareGlobalFunction( "CanonicalConjugate" );
 
 Reread( "/home/oscar/T-Groups/general.gi" );
