@@ -167,7 +167,7 @@ InstallGlobalFunction( "IsConjugateNilGroup", function(G,g,h)
             return rec( conj := Identity(G), state := false );
         fi;
 
-        U   := PreImage(nat, CentralizerNilGroup( Image(nat), Image(nat, g) ) );
+        U   := PreImage(nat, Kernel(f) );
     od;
 
     v := Identity(G);
