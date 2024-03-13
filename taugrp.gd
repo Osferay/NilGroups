@@ -25,7 +25,7 @@ DeclareGlobalFunction( "SameGenus" );
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
-DeclareGlobalFunction( "CanonicalConjugate" );
+DeclareGlobalFunction( "CanonicalConjugateNilGroup" );
 
 Reread( "/home/oscar/T-Groups/general.gi" );
 Reread( "/home/oscar/T-Groups/series.gi" );

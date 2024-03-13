@@ -1,101 +1,154 @@
-####################################################################
-## Global function to calculate the centralizer of g in G         ##
-####################################################################
+###########################################################################
+## Local function to calculate the centralizer of a set of elements in G ##
+###########################################################################
 
-InstallGlobalFunction( "CentralizerNilGroup", function(G,g)
+CentralizerNilGroupSeries := function( G, elms, pcps )
+    local   C,
+            i, 
+            pcp, 
+            N, 
+            gen, 
+            gens, 
+            rels, 
+            elm, 
+            matrix, 
+            null,
+            stb;
 
-    local   efa,    #Elementary/Free abelian series of G
-            C,      #Centralizer of G/Gi
-            U,      #U/Gi = Ci
-            nat,    #Natural homomorphism G -> G/Gi
-            fac,    #factor G(i-1)/Gi
-            gens,   #Generators L/Gi
-            imgs,   #gens -> [g,gen]
-            i,      #Bucle variables
-            f;      #homomorphism L/Gi -> G(i-1)/Gi 
-
-    efa := EfaSeries(G);
     C := G;
-    U := G;
 
-    for i in [2..Length(efa)-1] do
+    for i in [2..Length(pcps)] do
 
-        #Calculate G -> G/Gi
-        nat := NaturalHomomorphismByNormalSubgroup(G, efa[i+1]);
+        pcp := pcps[i]; 
+        N   := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
 
-        #Check a trivial case:
-        if IsAbelian( Image(nat) ) then
-            C := G/efa[i+1];
-            U := U;
+        gen := Pcp(C, N); 
+        gens:= AsList(gen);
 
-        else
+        rels := ExponentRelationMatrix( pcp );
+        for elm in elms do
+            if Length( gens ) <> 0 then 
 
-            #Take G(i-1)/Gi
-            fac := Image( nat, efa[i] );
+                # set up matrix
+                matrix := List( gens, h -> ExponentsByPcp( pcp, Comm(h,elm) ) );
+                Append( matrix, rels );
 
-            #Create the homomorpism f:U/Gi -> G(i-1)/Gi
-            gens:= Igs( Image( nat, U ) );
-            imgs := List( gens , x -> Comm( Image(nat, g) ,x) );
-            f   := GroupHomomorphismByImages( Image( nat, U ), fac, gens, imgs);
+                # get nullspace
+                null := PcpNullspaceIntMat( matrix );
+                null := null{[1..Length(null)]}{[1..Length(gens)]};
 
-            #Calculate C_(G/Gi)(gGi)
-            C := Kernel(f);
+                # calculate elements corresponding to null
+                stb  := List( null, x -> MappedVector( x, gens ) );
+                stb  := Filtered( stb, x -> x <> x^0 );
+            
+            fi;
+        od;
 
-            #Calculate the preimage of C in G
-            U := PreImage(nat, C);
+        stb := AddIgsToIgs( stb, Igs(N) );
+        C   := SubgroupByIgs( G, stb );
 
-        fi;
     od;
 
-    #make a random check
-    if not Comm(g, Random(C)) = Identity(G) then
-        Error(" The function is not working properly. ");
+    return(C);
+
+end;
+
+############################################################################
+## Global function to calculate the centralizer of a set of elements in G ##
+############################################################################
+
+InstallGlobalFunction( "CentralizerNilGroup", function(G, elms) 
+
+    local C;
+
+    if not IsList(elms) then
+        elms := [elms];
     fi;
+
+    C := CentralizerNilGroupSeries(G, elms, PcpsOfEfaSeries(G));
 
     return C;
 
 end );
 
-####################################################################
-## Local functions to the preimage of the conjugating element     ##
-####################################################################
+############################################################################
+## Local function to check if two elements in G are conjugate             ##
+############################################################################
 
-PreImageConjugate := function(G, w, nat, gens, imgs)
+IsConjugateNilGroupSeries := function(G, g, h, pcps )
 
-    local   e,      #Exponent vector of the images
-            k,      #Exponent of w
-            n,      #Exponent of the generator of U
-            j,
-            ndx,
-            vAi,
-            v;
+    local   C,
+            k,
+            i,
+            pcp,
+            c,
+            N,
+            fac,
+            gens,
+            matrix,
+            exp,
+            stb,
+            solv,
+            null;
+            
 
-    #We have U={g1,...,gn} and f(gi)=g^ei then f(U)=g^e1,...,g^en, with gcd(e1,...,en)=n
-    #such that f(U)=<a^n>. We store such exponents in the vector e.
-    ndx := Length(Exponents(imgs[1]));
-    e := [];
-    for j in [1..Length(imgs)] do
-        Add(e, Exponents(imgs[j])[ndx]);
-    od;
+    # the first layer
+    if ExponentsByPcp(pcps[1], g) <> ExponentsByPcp(pcps[1], h) then 
+        return false; 
+    fi;
 
-    #We solve the equation e1s1+...+ensn=k where k is the exponent of w
-    n := Gcd ( e );
-    k := Exponents( Image( nat, w )  )[ndx];
-    e := GcdRepresentation(e)*( k / n );
+    C := G;
+    k := One(G);
 
-    #Calculate w=f(vAi) for some vAi
-    vAi := Identity( Image(nat) );
-    for j in [1..Length(e)] do
-        vAi := vAi*gens[j]^e[j];
-    od;
+    for i in [2..Length(pcps)] do
 
-    #Now we find v such that nat(v)= vAi            
-    v := Identity(G);
-    for j in [1..Length(Exponents(vAi))] do
-        v := v*Cgs(G)[j]^(Exponents(vAi))[j];
-    od;
+        pcp := pcps[i];
+        c := g^k;
+
+        N := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
+        fac := Pcp(C, N);
+        gens := AsList(fac);
+        exp := ExponentsByPcp( pcp, c^-1 * h );
+        Print(exp, "\n");
+        if Length(gens) = 0 then
+            if exp = 0*exp then
+                stb := rec( stab := gens, prei := c^0 );
+            else
+                return false;
+            fi;
+
+        else
+
+            # set up matrix
+            matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+            Append( matrix, ExponentRelationMatrix( pcp ) );
+            # get solution
+            solv := PcpSolutionIntMat( matrix, -exp );
+            if IsBool( solv ) then 
+                return false; 
+            else
+                solv := solv{[1..Length(gens)]};
+
+                # get nullspace
+                null := PcpNullspaceIntMat( matrix );
+                null := null{[1..Length(null)]}{[1..Length(gens)]};
+
+                # calculate elements
+                solv := MappedVector( solv, gens );
+                gens := List( null, x -> MappedVector( x, gens ) );
+                gens := Filtered( gens, x -> x <> x^0 );
+                stb  := rec( stab := gens, prei := solv );
+            fi;
+        fi;
+
+        # extract results
+        k := k * stb.prei;
+        stb := AddIgsToIgs( stb.stab, Igs(N) );
+        C := SubgroupByIgs( G, stb );
     
-    return v^-1;
+    od;
+
+    return k;
 
 end;
 
@@ -105,150 +158,116 @@ end;
 
 InstallGlobalFunction( "IsConjugateNilGroup", function(G,g,h)
 
-    local   efa,    #efa series of G
-            U,      #Inverse image of the centralizer
-            v,      #Conjugating on each step
-            k,      #Conjugate on each step
-            exps,   #Storage of the exponents
-            nat,    #Natural homomorphism G->G/Gi
-            fac,    #Factor G(i-1)/Gi
-            gens,   #Generators of U/Ai
-            imgs,   #Generators of f(U/Ai)
-            f,      #Group homomorphism
-            j,i;
-
-    efa  := EfaSeries(G);
-    U    := G;
-    exps := [];
-    k    := h;
-
-    #Make a check on inputs
-    if not (IsNilpotentGroup(G) or g in G or h in G) then
-        Error( "Wrong inputs ");
-    fi;
-
-    #Catch trivial case
-    nat := NaturalHomomorphismByNormalSubgroup(G, efa[2]);
-    if Image(nat, k) <> Image(nat, h) then
-        return rec( conj := Identity(G), state := false );
-    fi;
-
-    for i in [2..Length(efa)-1] do
-
-        #Take G/Gi
-        nat := NaturalHomomorphismByNormalSubgroup(G, efa[i+1]);
-
-        #Take G(i-1)/Gi
-        fac := Image( nat, efa[i] );
-
-        #Create the homomorpism f:U/Gi -> G(i-1)/Gi
-        gens:= Igs( Image( nat, U ) );
-        imgs := List( gens , x -> Comm( Image(nat, g) ,x) );
-        f   := GroupHomomorphismByImages( Image( nat, U ), fac, gens, imgs);
-        
-        #Check if (g^-1*k)Ai in f(U/Ai)
-        if Image( nat, g^-1*k )  = Identity( Image(nat) ) then
-        
-            #In this case we don't have to do anything but as gives problems with 0/0 we have to diferenciate
-
-        elif Image( nat, g^-1*k ) in Image(f) then
-            v := PreImageConjugate(G, g^-1*k, nat, gens, imgs);
-            Add(exps, v);
-            k := k^v;
-        else
-            return rec( conj := Identity(G), state := false );
-        fi;
-
-        U:= PreImage(nat, Kernel(f) );
-    od;
-
-    v := Identity(G);
-    for i in exps do
-        v := v*i;
-    od;
-
-    #Check the result is correct
-    if not h^v=g then
-        Error(" The function is not working properly. ");
-    fi;
-
-    #Return the result
-    return rec( conj := v, state := true );
+    return IsConjugateNilGroupSeries(G,g,h,PcpsOfEfaSeries(G));
 
 end );
 
-InstallGlobalFunction( "CanonicalConjugate", function(G, g)
+####################################################################
+## Local function to calculate the canonical conjugate of g in G  ##
+####################################################################
 
-    local   efa,    #efa series of G
-            U,      #Inverse image of the centralizer
-            v,      #Conjugating on each step
-            h,      #Canonical conjugate on each step
-            nat,    #Natural homomorphism G->G/Gi
-            fac,    #Factor G(i-1)/Gi
-            gens,   #Generators of U/Ai
-            imgs,   #Generators of f(U/Ai)
-            f,      #Group homomorphism
-            ndx,
+CanonicalConjugateNilGroupSeries := function(G, g, pcps )
+
+    local   C,
             k,
-            al,
+            i,
+            pcp,
+            c,
+            N,
+            fac,
+            gens,
+            matrix,
             exp,
-            a,b,i,j;
+            stb,
+            solv,
+            l,
+            a,
+            b,
+            al,
+            null;
+            
 
-    efa  := EfaSeries(G);
-    U    := G;
-    nat  := NaturalHomomorphismByNormalSubgroup(G, efa[2]);
-    k    := Igs(G)[1]^Exponents( nat( g ) )[1];
-    h    := k;
-    v    := Identity(G);
+    # the first layer 
+    C := G;
+    h := G.1^( ExponentsByPcp(pcps[1], g)[1] );
+    k := One(G);
 
-    for i in [2..Length(efa)-1] do
+    for i in [2..Length(pcps)] do
 
-        #Take G/Gi
-        nat := NaturalHomomorphismByNormalSubgroup(G, efa[i+1]);
-        ndx := Length(Exponents( nat(g) ));
-        #Take G(i-1)/Gi
-        fac := Image( nat, efa[i] );
+        pcp := pcps[i];
+        c := h^k;
 
-        #Create the homomorpism f:U/Gi -> G(i-1)/Gi
-        gens:= Igs( Image( nat, U ) );
-        imgs := List( gens , x -> Comm( Image(nat, h) ,x) );
-        f   := GroupHomomorphismByImages( Image( nat, U ), fac, gens, imgs);
+        N := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
+        fac := Pcp(C, N);
+        gens := AsList(fac);
 
-        if Size( Image(f) )=1 then
+        exp := ExponentsByPcp( pcp, c^-1 * g );
+        matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+        Append( matrix, ExponentRelationMatrix( pcp ) );
+        
+        if matrix = 0*matrix then 
 
-            al := Cgs(G)[ndx]^Exponents( nat( h^-1*g ) )[ndx];
+            #This case is when f is the identity homomorphism.
+            h := h * Cgs(N)[1]^exp[1];
+            k := k * One(G);
 
-        elif nat(h^-1*g) in Image(f) then
+        else
+            # get solution
+            solv := PcpSolutionIntMat( matrix, -exp );
+            if IsBool( solv ) then 
+                l := [];
+                # we have that they are non conjugate so we have to work
+                for i in [1..Length(matrix)] do
+                    Add(l,matrix[i][1]);
+                od;
+                a := Gcd(l);
+                b := exp[1];
 
-            al := Identity(G);
-            v := v * PreImageConjugate(G, g^-1*(h*al), nat, gens, imgs);
-
-        else 
-            a := Exponents(( Igs( Image(f) )[1] ))[ndx];
-            b := Exponents(nat(h^-1*g))[ndx];
-            if a+b < 0 then
-                a := a*( AbsoluteValue(Int(b/a)) + 1 );
-            elif a+b > 0 then
-                if 0 < -a*( AbsoluteValue(Int(b/a)) ) + b and -a*( AbsoluteValue(Int(b/a)) ) < a+b then 
-                    a := -a*( AbsoluteValue(Int(b/a)) );
+                if a+b < 0 then
+                    a := a*( AbsoluteValue(Int(b/a)) + 1 );
+                elif a+b > 0 then
+                    if 0 < -a*( AbsoluteValue(Int(b/a)) ) + b and -a*( AbsoluteValue(Int(b/a)) ) < a+b then 
+                        a := -a*( AbsoluteValue(Int(b/a)) );
+                    fi;
                 fi;
-            fi;
-            al := Cgs(G)[ndx]^( a+b );
-            v := v * PreImageConjugate(G, g^-1*(h*al), nat, gens, imgs);
 
+                al := Cgs(N)[1]^( a+b );
+
+                h := h * al;
+                exp := ExponentsByPcp( pcp, (c*al)^-1 * g );
+                solv := PcpSolutionIntMat( matrix, -exp );
+            fi;
+
+            solv := solv{[1..Length(gens)]};
+
+            # get nullspace
+            null := PcpNullspaceIntMat( matrix );
+            null := null{[1..Length(null)]}{[1..Length(gens)]};
+
+            # calculate elements
+            solv := MappedVector( solv, gens );
+            gens := List( null, x -> MappedVector( x, gens ) );
+            gens := Filtered( gens, x -> x <> x^0 );
+            stb  := rec( stab := gens, prei := solv );
+
+            # extract results
+            k := k * stb.prei;
+            stb := AddIgsToIgs( stb.stab, Igs(N) );
+            C := SubgroupByIgs( G, stb );
         fi;
-        U := PreImage(nat, Kernel(f) );
-        k := k*al;
-        h := k^v;
+    
     od;
 
-    #Check the result is correct
-    if not h=g then
-        Print(" The function is not working properly. ");
-        #Error(" The function is not working properly. ");
-    fi;
+    return rec(conj := k, kano := h);
 
-    #Return the result
-    return rec( kano := k, conj := v );
+end;
+
+####################################################################
+## Global function to calculate the canonical conjugate in G      ##
+####################################################################
+
+InstallGlobalFunction( "CanonicalConjugateNilGroup", function(G,g)
+
+    return CanonicalConjugateNilGroupSeries(G,g,PcpsOfEfaSeries(G));
 
 end );
