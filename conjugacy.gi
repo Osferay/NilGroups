@@ -160,7 +160,7 @@ InstallGlobalFunction( "IsConjugateNilGroup", function(G,g,h)
 end );
 
 ####################################################################
-## helper function of CanonicalConjugateNilGroups, solves the     ##
+## Helper function of CanonicalConjugateNilGroups, solves the     ##
 ## the problem of finding m minimal with the well-defined order   ##
 ####################################################################
 
@@ -168,7 +168,8 @@ MinimalSol := function(N, matrix, exp)
 
     local   l,
             a,
-            b;
+            b,
+            i;
 
     #Flatten the matrix
     l := [];
@@ -294,3 +295,194 @@ InstallGlobalFunction( "CanonicalConjugateNilGroup", function(G, elms)
     return CanonicalConjugateNilGroupSeries(G, elms, PcpsOfEfaSeries(G));
 
 end );
+
+#######################################################################
+## Helper function to calculate the intersection of U with a term    ##
+## of the efa series of G                                            ##
+#######################################################################
+
+IntersectionEfaTerm := function(U, term)
+
+    local   gens,   #Generators of U
+            filt,   #Filtered generators that are in U and term
+            pos;    #Position of the first generator that is in U and term
+
+    #Trivial case
+    if Size(term) = 1 then 
+        return term; 
+    fi;
+    
+    gens    := Cgs(U);
+    filt    := Filtered( gens, g -> g in term );
+
+    if IsEmpty(filt) then
+        #We have that the intersection is empty
+        pos := Length(gens)+1; 
+    else
+        pos := Position(gens, filt[1]);
+    fi;
+
+    return Subgroup( term, gens{[pos..Length(gens)]} );
+
+end;
+
+#######################################################################
+## Local function to calculate the normalizer of U in G              ##
+#######################################################################
+
+NormalizerNilGroupSeries := function(G, U, efa)
+
+    local   N,      #Normalizer of U in G
+            H,      #Intersection of the previous step
+            Hi,     #Intersection on each step
+            i,      #Bucle variable
+            h,      #Generator of U/V
+            nat;    #Natural homomorphism N->N/V
+
+    N    := G;
+    H    := IntersectionEfaTerm( U, efa[Length(efa)-1] );
+
+    for i in Reversed([1..Length(efa)-2]) do
+    
+        Hi  := IntersectionEfaTerm(U, efa[i]);
+
+        if Hi <> H then
+            h   := AsList( Pcp(Hi, H) );
+            nat := NaturalHomomorphismByNormalSubgroup(N, H);
+            N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(h) ) );
+            H   := Hi;
+
+        fi;
+
+    od;
+
+    return N;
+
+end;
+
+#######################################################################
+## Global function to calculate the normalizer of U in G             ##
+#######################################################################
+
+InstallGlobalFunction( "NormalizerNilGroup", function(G,U)
+
+    if not IsSubgroup(G,U) then
+        Error( "U has to be a subgroup of G.");
+    fi;
+
+    return NormalizerNilGroupSeries(G, U, EfaSeries(G));
+
+end );
+
+
+#######################################################################
+## Local function to calculate the preimage of an element            ##
+#######################################################################
+
+PreImageByQuotient := function(G, hom, elm )
+
+    local   pcp,
+            gens,
+            matrix,
+            exp,
+            solv;
+
+    pcp    := Pcp( Image(hom) );
+    gens   := Cgs(G);
+    matrix := List( gens, x-> ExponentsByPcp( pcp, hom(x) ) );
+    Append( matrix, ExponentRelationMatrix( pcp ) );
+
+    exp    := ExponentsByPcp( pcp, elm );
+
+    solv   := PcpSolutionIntMat( matrix, exp );
+    solv   := solv{[1..Length( gens )]};
+
+    return MappedVector( solv, gens );
+
+end;
+
+#######################################################################
+## Local function to calculate is two subgroups of G are conjugated  ##
+#######################################################################
+
+IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
+    local   x,      #Conjugating element of U and V
+            Ui,     #Conjuate of U in each step
+            H,      #Intersection of previous step of U
+            K,      #Intersection of previous step of V
+            N,      #Normalizer of W
+            i,      #Bucle variable
+            Hi,     #Intersection in each step of U
+            Ki,     #Intersection in each step of V
+            h,      #Generator of U/W
+            k,      #Generator of V/W
+            nat,    #Natural homomorphism N->N/W
+            hk,     #Canonical conjugate of h
+            kk,     #Canonical conjugate of k
+            xi;     #Conjugating element in each step
+
+    x  := One(G);
+    Ui := U;
+    H  := IntersectionEfaTerm( Ui , efa[Length(efa)-1]);
+    K  := IntersectionEfaTerm( V , efa[Length(efa)-1]);
+    N  := G; 
+
+    if H <> K then
+        return false;
+    fi;
+
+    for i in Reversed([1..Length(efa)-2]) do
+        Hi := IntersectionEfaTerm( Ui, efa[i]);
+        Ki := IntersectionEfaTerm( V , efa[i]);
+        
+        if Hi <> H and Ki <> K then
+
+            #Get the generators of U/W and V/W
+            h   := AsList( Pcp(Hi, H) );
+            k   := AsList( Pcp(Ki, K) );
+
+            #Define the homomorphism N-> N/W
+            nat := NaturalHomomorphismByNormalSubgroup(N, H );
+            hk  := CanonicalConjugateNilGroup( nat(N), nat(h));
+            kk  := CanonicalConjugateNilGroup( nat(N), nat(k));
+
+            if hk.kano <> kk.kano then
+                return false;
+            else
+                xi  := hk.conj[1]^-1 * (kk.conj[1]);
+                xi  := PreImageByQuotient( N, nat, xi );
+                x   := x*xi;
+                H   := Hi^xi;
+                Ui  := Ui^xi;
+                K   := Ki;
+                N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
+            fi;
+        
+        elif Hi = H and Ki = K then 
+            #Process next
+        else
+            return false;
+        fi;
+    od;
+
+    return x;
+
+end;
+
+#######################################################################
+## Global function to calculate is two subgroups of G are conjugated ##
+#######################################################################
+
+InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
+
+    if not (IsSubgroup(G,U) and IsSubgroup(G,V) ) then
+        Error( "U and V have to be subgroups of G.");
+    fi;
+
+    if U = V then
+        return One(G);
+    else
+        return IsConjugateSubgroupsNilGroupSeries(G, U, V, EfaSeries(G));
+    fi;
+
+end );    

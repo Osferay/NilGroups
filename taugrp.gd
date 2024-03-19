@@ -26,6 +26,8 @@ DeclareGlobalFunction( "SameGenus" );
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
 DeclareGlobalFunction( "CanonicalConjugateNilGroup" );
+DeclareGlobalFunction( "NormalizerNilGroup" );
+DeclareGlobalFunction( "IsConjugateSubgroupsNilGroup" );
 
 Reread( "/home/oscar/T-Groups/general.gi" );
 Reread( "/home/oscar/T-Groups/series.gi" );
