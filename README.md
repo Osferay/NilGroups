@@ -4,17 +4,18 @@ Functions to work with infinite torsion-free nilpotent groups of small Hirsch ra
 
 # Contents
 
+- taugrp.gd:    Definition of the functions 
 - general.gi:   Offers some functions that are general for the other files.
-- exam.gi       Functions to generate some minimal T-groups.
-- series.gi     Functions to generate the isolator series of a T-group.
-- iso.gi        Functions to check if two T-groups are isomorphic (**CURRENTLY NON WORIKING**).
-- conjugacy.gi  **WORKS FOR ALL NILPOTENT GROUPS.** Functions to solve the following problems:
+- exam.gi:      Functions to generate some minimal T-groups.
+- series.gi:    Functions to generate the isolator series of a T-group.
+- iso.gi:       Functions to check if two T-groups are isomorphic (**CURRENTLY NON WORIKING**).
+- conjugacy.gi: **WORKS FOR ALL NILPOTENT GROUPS.** Functions to solve the following problems:
   - Centralizer problem. CentralizerNilGroup(G, elms)
   - Conjugacy problem. IsConjugateNilGroup(G, g, h)
   - Canonical conjugate. CanonicalConjugateNilGroup(G, elms)
   - Normalizer problem. NormalizerNilGroup(G, U)
   - Subgroup Conjugacy problem. IsConjugateSubgroupsNilGroup(G, U, V)
-- deprecated.gi Functions that are no longer used but can be recovered if necessary.
+- deprecated.gi: Functions that are no longer used but can be recovered if necessary.
 
 # Cites
 
