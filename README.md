@@ -11,7 +11,7 @@ Functions to work with infinite torsion-free nilpotent groups of small Hirsch ra
 - iso.gi:       Functions to check if two T-groups are isomorphic (**CURRENTLY NON WORIKING**).
 - conjugacy.gi: **WORKS FOR ALL NILPOTENT GROUPS.** Functions to solve the following problems:
   - Centralizer problem. CentralizerNilGroup(G, elms)
-  - Conjugacy problem. IsConjugateNilGroup(G, g, h)
+  - Conjugacy problem. IsConjugateNilGroup(G, g, h), IsCanonicalConjugateNilGroup(G, elms)
   - Canonical conjugate. CanonicalConjugateNilGroup(G, elms)
   - Normalizer problem. NormalizerNilGroup(G, U)
   - Subgroup Conjugacy problem. IsConjugateSubgroupsNilGroup(G, U, V)

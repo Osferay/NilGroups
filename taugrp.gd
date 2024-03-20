@@ -26,6 +26,7 @@ DeclareGlobalFunction( "SameGenus" );
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
 DeclareGlobalFunction( "CanonicalConjugateNilGroup" );
+DeclareGlobalFunction( "IsCanonicalConjugateNilGroup" );
 DeclareGlobalFunction( "NormalizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateSubgroupsNilGroup" );
 
