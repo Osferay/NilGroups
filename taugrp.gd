@@ -22,6 +22,12 @@ DeclareGlobalFunction( "ExtendedTauType" );
 DeclareGlobalFunction( "IsomorphismTauGroup" );
 DeclareGlobalFunction( "SameGenus" );
 
+### Inter.gi
+
+DeclareGlobalFunction( "IntersectionEfaTerm" );
+DeclareGlobalFunction( "InducedEfaSeries" );
+DeclareGlobalFunction( "PcpsOfInducedEfaSeries" );
+
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
@@ -34,4 +40,5 @@ Reread( "/home/oscar/T-Groups/general.gi" );
 Reread( "/home/oscar/T-Groups/series.gi" );
 Reread( "/home/oscar/T-Groups/exam.gi" );
 #Reread( "/home/oscar/T-Groups/iso.gi" );
+Reread( "/home/oscar/T-Groups/inter.gi" );
 Reread( "/home/oscar/T-Groups/conjugacy.gi" );

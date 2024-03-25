@@ -169,7 +169,7 @@ MinimalSol := function(N, matrix, exp)
     local   l,
             a,
             b,
-            i;
+            n;
 
     #Flatten the matrix
     l := [];
@@ -180,13 +180,14 @@ MinimalSol := function(N, matrix, exp)
     #Coeficients of the problem
     a := Gcd(l);
     b := exp[1];
+    n := AbsoluteValue(Int(b/a));
 
     #Minimize the solution under <<
     if a+b < 0 then
-        a := a*( AbsoluteValue(Int(b/a)) + 1 );
+        a := a*( n + 1 );
     elif a+b > 0 then
-        if 0 < -a*( AbsoluteValue(Int(b/a)) ) + b and -a*( AbsoluteValue(Int(b/a)) ) + b < a+b then 
-            a := -a*( AbsoluteValue(Int(b/a)) );
+        if 0 < -a*( n ) + b and -a*( n ) + b < a+b then 
+            a := -a*( n );
         fi;
     fi;
 
@@ -325,15 +326,14 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
     # the first layer 
     C   := [];
-    h   := [];
     k   := [];
-    ref := ExponentsByPcp(pcps[1], elms[1])[1];
+    ref := Exponents(elms[1])[1];
+    h   := G.1^( ref );
     for elm in elms do
-        if ExponentsByPcp(pcps[1], elm)[1] <> ref then
+        if Exponents(elm)[1] <> ref then
             return false;
         fi;
         Add( C, G);
-        Add( h, G.1^( ExponentsByPcp(pcps[1], elm)[1] ) );
         Add( k, One(G) );
     od;
 
@@ -343,10 +343,10 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         N    := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
 
         for j in [1..Length(elms)] do
-        
+            Print(j,"\n");
             fac  := Pcp(C[j], N);
             gens := AsList(fac);
-            c := h[j]^k[j];
+            c := h^k[j];
 
             exp    := ExponentsByPcp( pcp, c^-1 * elms[j] );
             matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
@@ -355,18 +355,16 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             if matrix = 0*matrix then 
                 #This case is when f is the identity homomorphism.
                 exps := exp[1];
-                m    := Cgs(N)[1]^exps;
-                h[j] := h[j] * m;
+                m    := rec( solv := Cgs(N)[1]^exps);
                 k[j] := k[j] * One(G);
 
             else
                 # get solution if necessary
                 solv := PcpSolutionIntMat( matrix, -exp );
                 if IsBool( solv ) then 
-                    
+
                     m    := MinimalSol( N, matrix, exp );
                     exps := m.exp;
-                    h[j] := h[j] * m.solv;
                     exp  := ExponentsByPcp( pcp, (c*m.solv)^-1 * elms[j] );
                     solv := PcpSolutionIntMat( matrix, -exp );
 
@@ -394,22 +392,20 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
             if j = 1 then
                 ref := exps;
-            else
-                if exps<>ref then
-                    return false;
-                fi;
+                h   := h * m.solv;
+            elif exps<>ref then
+                return false;
             fi;
             
         od;
     od;
 
     c := k[1];
-    for i in [2..Length(k)] do
+    for i in [1..Length(k)] do
         k[i] := k[i]^-1 * c;
     od;
-    k[1] := One(G);
 
-    return rec(kano := h[1], conj :=k );
+    return rec(kano := h, conj :=k );
 
 end;
 
@@ -427,36 +423,6 @@ InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms)
     return IsCanonicalConjugateNilGroupSeries(G, elms, PcpsOfEfaSeries(G));
 
 end );
-
-#######################################################################
-## Helper function to calculate the intersection of U with a term    ##
-## of the efa series of G                                            ##
-#######################################################################
-
-IntersectionEfaTerm := function(U, term)
-
-    local   gens,   #Generators of U
-            filt,   #Filtered generators that are in U and term
-            pos;    #Position of the first generator that is in U and term
-
-    #Trivial case
-    if Size(term) = 1 then 
-        return term; 
-    fi;
-    
-    gens    := Cgs(U);
-    filt    := Filtered( gens, g -> g in term );
-
-    if IsEmpty(filt) then
-        #We have that the intersection is empty
-        pos := Length(gens)+1; 
-    else
-        pos := Position(gens, filt[1]);
-    fi;
-
-    return Subgroup( term, gens{[pos..Length(gens)]} );
-
-end;
 
 #######################################################################
 ## Local function to calculate the normalizer of U in G              ##
@@ -616,3 +582,101 @@ InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
     fi;
 
 end );    
+
+CentralizerNilSubgroupGroupSeries := function(G, U, elms, pcps)
+
+    local   C,      #Centralizer of elms in G
+            i,      #Bucle variable
+            pcp,    #Factor on each step Gi/G(i+1)
+            N,      #Subgroup Gi
+            fac,    #Factor group C/Gi in each step
+            gens,   #Generators of gen
+            rels,   #Relation matrix of Gi/G(i+1)
+            elm,    #Single elements on elms
+            matrix, #Matrix representing the image of the homomorphism f
+            null,   #Kernel of f
+            stb;    #Elements corresponding to the kernel
+
+    pcp := pcps[1];
+    N   := SubgroupByIgs( G, DenominatorOfPcp(pcp) );
+
+    fac := Pcp(U, N); 
+    gens:= AsList(fac);
+
+    rels := ExponentRelationMatrix( pcp );
+    stb  := gens;
+    for elm in elms do
+        if Length( stb ) <> 0 then 
+
+            # set up matrix
+            matrix := List( stb, h -> ExponentsByPcp( pcp, Comm(h,elm) ) );
+            Append( matrix, rels );
+
+            # get nullspace
+            null := PcpNullspaceIntMat( matrix );
+            null := null{[1..Length(null)]}{[1..Length(stb)]};
+
+            # calculate elements corresponding to null
+            stb  := List( null, x -> MappedVector( x, stb ) );
+            stb  := Filtered( stb, x -> x <> x^0 );
+        
+        fi;
+    od;
+
+    stb := AddIgsToIgs( stb, Igs(N) );
+    C   := SubgroupByIgs( G, stb );
+
+    for i in [2..Length(pcps)] do
+
+        pcp := pcps[i]; 
+        N   := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
+
+        fac := Pcp(C, N); 
+        gens:= AsList(fac);
+
+        rels := ExponentRelationMatrix( pcp );
+        stb  := gens;
+        for elm in elms do
+            if Length( stb ) <> 0 then 
+
+                # set up matrix
+                matrix := List( stb, h -> ExponentsByPcp( pcp, Comm(h,elm) ) );
+                Append( matrix, rels );
+
+                # get nullspace
+                null := PcpNullspaceIntMat( matrix );
+                null := null{[1..Length(null)]}{[1..Length(stb)]};
+
+                # calculate elements corresponding to null
+                stb  := List( null, x -> MappedVector( x, stb ) );
+                stb  := Filtered( stb, x -> x <> x^0 );
+            
+            fi;
+        od;
+
+        stb := AddIgsToIgs( stb, Igs(N) );
+        C   := SubgroupByIgs( G, stb );
+
+    od;
+
+    return(C);
+
+end;
+
+CentralizerNilSubgroupGroup := function(G, U, elms)
+
+    if not IsList(elms) then
+        elms := [elms];
+    fi;
+
+    if not IsNormal(G,U) then
+        Error(" U has to be normal in G.");
+    elif elms in U then
+        return CentralizerNilGroup(U, elms);
+    else
+        return CentralizerNilSubgroupGroupSeries(G, U, elms, PcpsOfInducedEfaSeries(G, U) );
+    fi;
+
+    
+
+end;
