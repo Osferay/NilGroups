@@ -169,29 +169,21 @@ MinimalSol := function(N, matrix, exp)
     local   l,
             a,
             b,
-            n;
+            n,
+            i;
 
     #Flatten the matrix
     l := [];
     for i in [1..Length(matrix)] do
-        Add(l,matrix[i][1]);
+        l[i] := matrix[i][1];
     od;
 
     #Coeficients of the problem
     a := Gcd(l);
     b := exp[1];
-    n := AbsoluteValue(Int(b/a));
+    n := b mod a;
 
-    #Minimize the solution under <<
-    if a+b < 0 then
-        a := a*( n + 1 );
-    elif a+b > 0 then
-        if 0 < -a*( n ) + b and -a*( n ) + b < a+b then 
-            a := -a*( n );
-        fi;
-    fi;
-
-    return rec( solv := Cgs(N)[1]^( a+b ), exp:= a+b );
+    return rec( solv := Cgs(N)[1]^( n ), exp := n);
 
 end;
 
@@ -201,7 +193,7 @@ end;
 
 CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
-    local   C,      #Centralizer of elms in G
+    local   C,      #Centralizer of kanos in G
             h,      #CanonicalConjugate
             k,      #Conjugate element
             i,j,elm,#Bucle variable
@@ -237,12 +229,11 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         
             fac  := Pcp(C[j], N);
             gens := AsList(fac);
-            c := h[j]^k[j];
+            c := elms[j]^k[j];
 
-            exp    := ExponentsByPcp( pcp, c^-1 * elms[j] );
+            exp    := ExponentsByPcp( pcp, h[j]^-1 * c );  
             matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
             Append( matrix, ExponentRelationMatrix( pcp ) );
-        
             if matrix = 0*matrix then 
                 #This case is when f is the identity homomorphism.
                 m    := Cgs(N)[1]^exp[1];
@@ -251,12 +242,12 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
             else
                 # get solution if necessary
-                solv := PcpSolutionIntMat( matrix, -exp );
+                solv := PcpSolutionIntMat( matrix, exp );
                 if IsBool( solv ) then 
                     
                     m    := MinimalSol( N, matrix, exp ).solv;
                     h[j] := h[j] * m;
-                    exp  := ExponentsByPcp( pcp, (c*m)^-1 * elms[j] );
+                    exp  := ExponentsByPcp( pcp, c^-1 * h[j] );
                     solv := PcpSolutionIntMat( matrix, -exp );
 
                 fi;
@@ -274,6 +265,7 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
                 # extract results
                 k[j] := k[j] * stb.prei;
+                
                 stb  := AddIgsToIgs( stb.stab, Igs(N) );
                 C[j] := SubgroupByIgs( G, stb );
             fi;
@@ -317,6 +309,7 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             matrix, #Matrix representing the image of the homomorphism f
             exp,    #Exponents of c^-1*g in each pcp
             stb,    #Elements corresponding to the kernel and the preimages
+            rels,   #Preimages
             solv,   #Conjugating element in each step
             m,      #Minimal element to have h*m conjugate
             exps,   #Exponent of the minimal solution
@@ -325,84 +318,93 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             
 
     # the first layer 
-    C   := [];
-    k   := [];
-    ref := Exponents(elms[1])[1];
+    C   := G;
+    k   := [One(G)];
+    ref := ExponentsByPcp(pcps[1], elms[1])[1];
     h   := G.1^( ref );
-    for elm in elms do
-        if Exponents(elm)[1] <> ref then
+
+    for i in [2..Length(elms)] do
+        if ExponentsByPcp(pcps[1], elms[i])[1] <> ref then
             return false;
         fi;
-        Add( C, G);
-        Add( k, One(G) );
+        k[i] := One(G);
     od;
 
     for i in [2..Length(pcps)] do
 
-        pcp  := pcps[i];
-        N    := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
+        pcp    := pcps[i];
+        N      := SubgroupByIgs( G, NumeratorOfPcp(pcp) );
 
-        for j in [1..Length(elms)] do
-            Print(j,"\n");
-            fac  := Pcp(C[j], N);
-            gens := AsList(fac);
-            c := h^k[j];
+        fac    := Pcp(C, N);
+        gens   := AsList(fac);
 
-            exp    := ExponentsByPcp( pcp, c^-1 * elms[j] );
-            matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
-            Append( matrix, ExponentRelationMatrix( pcp ) );
+        #For the fist element
+        c      := elms[1]^k[1];
+        exp    := ExponentsByPcp( pcp, h^-1 * c );
         
-            if matrix = 0*matrix then 
-                #This case is when f is the identity homomorphism.
-                exps := exp[1];
-                m    := rec( solv := Cgs(N)[1]^exps);
-                k[j] := k[j] * One(G);
+        matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+        rels   := ExponentRelationMatrix( pcp );
+        Append( matrix, rels );
+
+        if matrix = 0*matrix then 
+            #This case is when f is the identity homomorphism.
+            h  := h*Cgs(N)[1]^exp[1];
+
+        else
+            # get solution if necessary
+            solv := PcpSolutionIntMat( matrix, exp );
+            if IsBool( solv ) then 
+                m    := MinimalSol( N, matrix, exp );
+                h    := h * m.solv;
+                exp  := exp - m.exp;
+                solv := PcpSolutionIntMat( matrix, exp );
+            fi;
+
+            # calculate elements
+            solv := solv{[1..Length(gens)]};
+            solv := MappedVector( solv, gens );
+            
+            # extract results
+            k[1] := k[1] * solv;
+        fi;
+
+        # Calculate the centralizer
+        null := PcpNullspaceIntMat( matrix );
+        null := null{[1..Length(null)]}{[1..Length(gens)]};
+
+        stb  := List( null, x -> MappedVector( x, gens ) );
+        stb  := Filtered( stb, x -> x <> x^0 );
+
+        stb  := AddIgsToIgs( stb, Igs(N) );
+        C    := SubgroupByIgs( G, stb );
+
+        #For the other elements
+        for j in [2..Length(elms)] do
+
+            c      := elms[j]^k[j];
+            exp    := ExponentsByPcp( pcp, h^-1 * c );
+            matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+            Append( matrix, rels );
+            
+            if matrix = 0*matrix and exp <> [0] then 
+
+                return false;
 
             else
                 # get solution if necessary
-                solv := PcpSolutionIntMat( matrix, -exp );
-                if IsBool( solv ) then 
-
-                    m    := MinimalSol( N, matrix, exp );
-                    exps := m.exp;
-                    exp  := ExponentsByPcp( pcp, (c*m.solv)^-1 * elms[j] );
-                    solv := PcpSolutionIntMat( matrix, -exp );
-
-                else
-                    exps := 0;
-                fi;
-
-                solv := solv{[1..Length(gens)]};
-
-                # get nullspace
-                null := PcpNullspaceIntMat( matrix );
-                null := null{[1..Length(null)]}{[1..Length(gens)]};
-
+                solv := PcpSolutionIntMat( matrix, exp );
+                if IsBool(solv) then return false; fi;
+    
                 # calculate elements
+                solv := solv{[1..Length(gens)]};
                 solv := MappedVector( solv, gens );
-                gens := List( null, x -> MappedVector( x, gens ) );
-                gens := Filtered( gens, x -> x <> x^0 );
-                stb  := rec( stab := gens, prei := solv );
-
+                
                 # extract results
-                k[j] := k[j] * stb.prei;
-                stb  := AddIgsToIgs( stb.stab, Igs(N) );
-                C[j] := SubgroupByIgs( G, stb );
+                k[j] := k[j] * solv;
             fi;
 
-            if j = 1 then
-                ref := exps;
-                h   := h * m.solv;
-            elif exps<>ref then
-                return false;
-            fi;
-            
         od;
-    od;
 
-    c := k[1];
-    for i in [1..Length(k)] do
-        k[i] := k[i]^-1 * c;
     od;
 
     return rec(kano := h, conj :=k );
