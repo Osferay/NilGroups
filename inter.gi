@@ -14,7 +14,7 @@ InstallGlobalFunction( "IntersectionEfaTerm", function(U, term)
         return term; 
     fi;
     
-    gens    := Cgs(U);
+    gens    := Igs(U);
     filt    := Filtered( gens, g -> g in term );
 
     if IsEmpty(filt) then

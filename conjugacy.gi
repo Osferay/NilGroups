@@ -669,7 +669,7 @@ IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
             h,      #Generator of U/W
             k,      #Generator of V/W
             nat,    #Natural homomorphism N->N/W
-            kan,    #Canonical conjugates of h and k
+            conj,   #Conjugating of h and k
             xi;     #Conjugating element in each step
 
     x  := One(G);
@@ -694,13 +694,12 @@ IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
 
             #Define the homomorphism N-> N/W
             nat := NaturalHomomorphismByNormalSubgroup(N, H );
-            kan := IsCanonicalConjugateNilGroup( nat(N), [nat(k), nat(h)]);
+            conj:= IsConjugateNilGroup( nat(N), nat(k), nat(h));
 
-            if IsBool(kan) then
+            if IsBool(conj) then
                 return false;
             else
-                xi  := kan.conj[2]*kan.conj[1]^-1;
-                xi  := PreImageByQuotient( N, nat, xi );
+                xi  := PreImageByQuotient( N, nat, conj );
                 x   := x*xi;
                 H   := Hi^xi;
                 Ui  := Ui^xi;
@@ -737,52 +736,75 @@ InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
 
 end );    
 
-# CanonicalConjugateSubgroupNilGroup := function(G, U, efa)
-#     local   x,      #Conjugating element of U and V
-#             Ui,     #Conjuate of U in each step
-#             H,      #Intersection of previous step of U
-#             K,      #Intersection of previous step of V
-#             N,      #Normalizer of W
-#             i,      #Bucle variable
-#             Hi,     #Intersection in each step of U
-#             Ki,     #Intersection in each step of V
-#             h,      #Generator of U/W
-#             k,      #Generator of V/W
-#             nat,    #Natural homomorphism N->N/W
-#             kan,    #Canonical conjugates of h and k
-#             xi;     #Conjugating element in each step
+#######################################################################
+## Local function to calculate the canonical conjugate subgroup of  ##
+## a subgroup in G                                                   ##
+#######################################################################
 
-#     x  := One(G);
-#     Ui := U;
-#     H  := IntersectionEfaTerm( Ui , efa[Length(efa)-1]);
-#     N  := G; 
-#     K  := H;
+CanonicalConjugateSubgroupNilGroupSeries := function(G, U, efa)
 
-#     for i in Reversed([1..Length(efa)-2]) do
-#         Hi := IntersectionEfaTerm( Ui, efa[i]);
+    local   x,      #Conjugating element of U and V
+            Ui,     #Conjuate of U in each step
+            H,      #Intersection of previous step of U
+            K,      #Intersection of previous step of V
+            N,      #Normalizer of W
+            i,      #Bucle variable
+            Hi,     #Intersection in each step of U
+            Ki,     #Intersection in each step of V
+            h,      #Generator of U/W
+            k,      #Generator of V/W
+            nat,    #Natural homomorphism N->N/W
+            kan,    #Canonical conjugates of h and k
+            xi;     #Conjugating element in each step
+
+    x  := One(G);
+    Ui := U;
+    H  := IntersectionEfaTerm( Ui , efa[Length(efa)-1]);
+    N  := G; 
+    K  := H;
+
+    for i in Reversed([1..Length(efa)-2]) do
+    
+        Hi := IntersectionEfaTerm( Ui, efa[i]);
         
-#         if Hi <> H then
+        if Hi <> H then
 
-#             #Get the generators of U/W and V/W
-#             h   := AsList( Pcp(Hi, H) )[1];
-#             tst := CanonicalConjugateNilGroup( Hi, h );
+            #Get the generators of U/W and V/W
+            h   := AsList( Pcp(Hi, H) )[1];
 
-#             #Define the homomorphism N-> N/W
-#             nat := NaturalHomomorphismByNormalSubgroup(N, H );
-#             kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
-#             k   := PreImageByQuotient(N, nat, kan.kano[1]);
-#             xi  := PreImageByQuotient(N, nat, kan.conj[1])
-#             H   := Hi;
-#             N   := PreImage( nat, kan.cent );
+            #Define the homomorphism N-> N/W
+            nat := NaturalHomomorphismByNormalSubgroup(N, H );
+            kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
+            k   := PreImageByQuotient(N, nat, kan.kano[1]);
+            xi  := PreImageByQuotient(N, nat, kan.conj[1]);
+            x   := x*xi;
+            H   := Hi^xi;
+            Ui  := Ui^xi;
+            N   := PreImage( nat, kan.cent[1] );
 
-#             gens := AddIgsToIgs( Igs(K), [k]);
-#             K    := Subgroup( G, gens);
+            gens := AddIgsToIgs( Igs(K), [k]);
+            K    := Subgroup( G, gens);
         
-#         elif Hi = H then 
-#             #Process next
-#         fi;
-#     od;
+        elif Hi = H then 
+            #Process next
+        fi;
+    od;
 
-#     return K;
+    return rec( kano := K, conj := x, norm := N);
 
-# end;
+end;
+
+#######################################################################
+## Global function to calculate the canonical conjugate subgroup of  ##
+## a subgroup in G                                                   ##
+#######################################################################
+
+InstallGlobalFunction( "CanonicalConjugateSubgroupNilGroup", function(G, U)
+
+    if not IsSubgroup(G,U) then
+        Error( "U has to be subgroups of G.");
+    fi;
+
+    return CanonicalConjugateSubgroupNilGroupSeries(G, U, PcpSeries(G) ); 
+
+end );  
