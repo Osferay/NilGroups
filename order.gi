@@ -31,7 +31,7 @@ ExponentOrder := function(g,h)
             return IntegerOrder( e1[i], e2[i] );
         fi;
     od;
-    return true;
+    return false;
 end;
 
 InstallGlobalFunction( "ConjugacyOrder" , function(g,h) 
@@ -60,7 +60,7 @@ PcpOrder := function(U,V)
             return ExponentOrder( pcp1[i], pcp2[i] );
         fi;
     od;
-    return true;
+    return false;
 
 end;
 

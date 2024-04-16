@@ -164,18 +164,16 @@ end );
 
 MinimalSol := function(pcp, matrix, exp)
 
-    local   l,
-            a,
-            b,
-            n;
+    local   l,  #Flattened matrix
+            a,  #Gcd of the matrix
+            n;  #Solution
 
     #Flatten the matrix
     l := List( matrix, x -> x[1] );
 
     #Coeficients of the problem
     a := Gcd(l);
-    b := exp[1];
-    n := b mod a;
+    n := exp mod a;
 
     return rec( solv := pcp[1]^( n ), exp:= n );
 
@@ -183,11 +181,11 @@ end;
 
 MinimizeRelations := function(l, exp, o)
 
-    local   min,
-            i,
-            d,
-            n,
-            z;
+    local   min,    #Minimum number of relations
+            i,      #Bucle variable
+            d,      #Gcd of the minimum number of relations
+            n,      #Gcd of d and the order
+            z;      #Solution
             
     min := [];
     for i in [1..Length(l)] do 
@@ -204,16 +202,15 @@ end;
 
 MinimalSolFFE := function(pcp, matrix, gens, h, c, o)
 
-    local   gen,
-            d,
-            pos,
-            a,
-            exp,
-            b,
-            rep,
-            n,
-            x,
-            y;
+    local   gen,    #Generator of the pcp
+            d,      #Depth of the pcp
+            pos,    #Positions where the matrix is non zero
+            a,      #List of commutators
+            exp,    #Exponents
+            b,      #Minimum of the equation
+            rep,    #Minimum relations
+            n,      #Integer variable
+            i;      #Bucle variable
     
     gen := pcp[1]; 
     d   := Depth( gen ); 
@@ -263,11 +260,11 @@ end;
 
 PcpSolutionFFEMat := function( matrix, exp, o)
 
-    local   l,
-            i,
-            n,
-            pos,
-            solv;
+    local   l,      #Flattened matrix
+            i,      #Bucle variable
+            n,      #Gcd of the flattened matrix and 
+            pos,    #Gcd representation of the matrix
+            solv;   #Solution
 
     #Check if the equation has solution
     l      := List( matrix, x -> x[1] );
@@ -275,10 +272,10 @@ PcpSolutionFFEMat := function( matrix, exp, o)
     solv   := Gcd( l );
     pos    := GcdRepresentation( l );
     n      := Gcd( solv, o );
-    if (exp[1] mod n) <> 0 then return false; fi;
+    if (exp mod n) <> 0 then return false; fi;
 
     #Now solve it , trying to use the minimum number of relations
-    solv   := MinimizeRelations(l, exp[1], o);
+    solv   := MinimizeRelations(l, exp, o);
     
     for i in [1..Length(solv)] do
         if solv[i] <> 0 then
@@ -316,7 +313,6 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             stb,    #Elements corresponding to the kernel and the preimages
             solv,   #Conjugating element in each step
             m,      #Minimal element to have h*m conjugate
-            comm,   #
             null;   #Kernel of f
             
 
@@ -326,7 +322,7 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
     k := [];
     for elm in elms do
         Add( C, G);
-        Add( h, G.1^( ExponentsByPcp(pcps[1], elm)[1] ) );
+        Add( h, G.1^( Exponents(elms[1])[1] ) );
         Add( k, One(G) );
     od;
 
@@ -341,20 +337,19 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             fac    := Pcp(C[j], N);
             gens   := AsList(fac);
             c      := elms[j]^k[j];
-            matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+            matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
+            exp := Exponents( h[j]^-1 * c )[i];
 
             if matrix = 0*matrix then 
                 #This case is when f is the identity homomorphism.
                 
-                exp  := ExponentsByPcp( pcp, h[j]^-1 * c );  
-                m    := pcp[1]^exp[1];
+                m    := pcp[1]^exp;
                 h[j] := h[j] * m;
                 Append(matrix, ExponentRelationMatrix( pcp ));
 
             elif o = 0 then
                 # check if they are conjugated
-                exp  := ExponentsByPcp( pcp, h[j]^-1 * c );  
-                solv := PcpSolutionIntMat( matrix, exp );
+                solv := PcpSolutionIntMat( matrix, [exp] );
                 
                 if IsBool( solv ) then 
                     #if not add the minimal element to be conjugated
@@ -363,7 +358,7 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
                     #Calculate the new exponent
                     exp  := exp - m.exp;
-                    solv := PcpSolutionIntMat( matrix, exp );
+                    solv := PcpSolutionIntMat( matrix, [exp] );
                 fi;
 
                 #Calculate the conjugating element
@@ -371,7 +366,6 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
                 k[j] := k[j] * solv;
             
             else
-                exp  := ExponentsByPcp( pcp, h[j]^-1 * c ); 
                 solv := PcpSolutionFFEMat(matrix, exp, o);
                 if IsBool(solv) then
                     m    := MinimalSolFFE(pcp, matrix, gens, h[j], c, o);
@@ -436,7 +430,6 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             matrix, #Matrix representing the image of the homomorphism f
             exp,    #Exponents of c^-1*g in each pcp
             stb,    #Elements corresponding to the kernel and the preimages
-            comm,   #Preimages
             solv,   #Conjugating element in each step
             m,      #Minimal element to have h*m conjugate
             exps,   #Exponent of the minimal solution
@@ -447,11 +440,11 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
     # the first layer 
     C   := G;
     k   := [One(G)];
-    ref := ExponentsByPcp(pcps[1], elms[1])[1];
+    ref := Exponents(elms[1])[1];
     h   := G.1^( ref );
 
     for i in [2..Length(elms)] do
-        if ExponentsByPcp(pcps[1], elms[i])[1] <> ref then
+        if Exponents( elms[i] )[1] <> ref then
             return false;
         fi;
         k[i] := One(G);
@@ -468,24 +461,23 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
         #For the fist element
         c      := elms[1]^k[1];
-        matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+        matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
+        exp := Exponents( h^-1 * c )[i];
 
         if matrix = 0*matrix then 
             #This case is when f is the identity homomorphism.
-            exp := ExponentsByPcp( pcp, h^-1 * c );
-            h   := h*pcp[1]^exp[1];
+            h   := h*pcp[1]^exp;
             Append( matrix, ExponentRelationMatrix( pcp ) );
 
         elif o = 0 then
             # get solution if necessary
-            exp  := ExponentsByPcp( pcp, h^-1 * c );
-            solv := PcpSolutionIntMat( matrix, exp );
+            solv := PcpSolutionIntMat( matrix, [exp] );
 
             if IsBool( solv ) then 
                 m    := MinimalSol( pcp, matrix, exp );
                 h    := h * m.solv;
                 exp  := exp - m.exp;
-                solv := PcpSolutionIntMat( matrix, exp );
+                solv := PcpSolutionIntMat( matrix, [exp] );
             fi;
 
             # calculate elements
@@ -495,7 +487,6 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
         else
 
-            exp  := ExponentsByPcp( pcp, h^-1 * c ); 
             solv := PcpSolutionFFEMat(matrix, exp, o);
 
             if IsBool(solv) then
@@ -527,15 +518,15 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         for j in [2..Length(elms)] do
 
             c      := elms[j]^k[j];
-            exp    := ExponentsByPcp( pcp, h^-1 * c );
-            matrix := List( gens, x -> ExponentsByPcp( pcp, Comm(x,c) ) );
+            exp    := Exponents( h^-1 * c )[i];
+            matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
 
-            if matrix = 0*matrix and exp <> [0] then 
+            if matrix = 0*matrix and exp <> 0 then 
                 return false;
 
             elif o = 0 then
                 # get solution if necessary
-                solv := PcpSolutionIntMat( matrix, exp );
+                solv := PcpSolutionIntMat( matrix, [exp] );
                 if IsBool(solv) then return false; fi;
     
                 # calculate elements
@@ -565,16 +556,19 @@ end;
 ## using canonical conjugate elements                               ##
 ######################################################################
 
-InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms)
+InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms, arg...)
 
-    local   pcps;
+    local   pcps,
+            can;
 
     if not IsList(elms) then
         elms := [elms];
     fi;
 
     pcps := PcpsBySeries( PcpSeries(G) );
-    return IsCanonicalConjugateNilGroupSeries(G, elms, pcps);
+    can  := IsCanonicalConjugateNilGroupSeries(G, elms, pcps);
+
+    return can;
     
 end );
 
@@ -642,13 +636,9 @@ PreImageByQuotient := function(G, hom, elm )
     pcp    := Pcp( Image(hom) );
     gens   := Cgs(G);
     matrix := List( gens, x-> ExponentsByPcp( pcp, hom(x) ) );
-    Append( matrix, ExponentRelationMatrix( pcp ) );
-
     exp    := ExponentsByPcp( pcp, elm );
 
     solv   := PcpSolutionIntMat( matrix, exp );
-    solv   := solv{[1..Length( gens )]};
-
     return MappedVector( solv, gens );
 
 end;
@@ -747,6 +737,7 @@ CanonicalConjugateSubgroupNilGroupSeries := function(G, U, efa)
             Ui,     #Conjuate of U in each step
             H,      #Intersection of previous step of U
             K,      #Intersection of previous step of V
+            gens,
             N,      #Normalizer of W
             i,      #Bucle variable
             Hi,     #Intersection in each step of U
@@ -775,11 +766,14 @@ CanonicalConjugateSubgroupNilGroupSeries := function(G, U, efa)
             #Define the homomorphism N-> N/W
             nat := NaturalHomomorphismByNormalSubgroup(N, H );
             kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
+            
             k   := PreImageByQuotient(N, nat, kan.kano[1]);
             xi  := PreImageByQuotient(N, nat, kan.conj[1]);
+
             x   := x*xi;
             H   := Hi^xi;
             Ui  := Ui^xi;
+            
             N   := PreImage( nat, kan.cent[1] );
 
             gens := AddIgsToIgs( Igs(K), [k]);

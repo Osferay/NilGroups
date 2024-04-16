@@ -208,3 +208,59 @@ InstallGlobalFunction( MinimalTauGroups, function(h, c, n)
     return G;
 
 end );
+
+SomeNilpotentGroups := function( n )
+    local   tau,
+            et,
+            a,b,x,
+            rengel,
+            H,
+            ftl;
+
+    if n = 1 then
+        tau := [0, 13, 7, 3];
+        G := TauGroupByVector(tau, 4);
+        return G;
+    
+    elif n = 2 then 
+        tau := [11, 0, 0, 8, 0, 16, 0, 15, 0, 0];
+        G := TauGroupByVector(tau, 5);
+        return G;
+    
+    elif n = 3 then
+        et := ExpressionTrees( "a", "b", "x" );
+        a := et[1];; b := et[2];; x := et[3];;
+        rengel := LeftNormedComm( [a,x,x,x] );
+        H := rec( generators := et, relations := [rengel] );
+        G := NilpotentQuotient( H, [x] );
+        return G;
+    
+    elif n = 4 then
+        ftl := FromTheLeftCollector(5);
+        SetRelativeOrder( ftl, 5, 3872);
+        SetConjugate( ftl, 2 , 1, [2, 1, 3, 22, 4, 88]);
+        SetConjugate( ftl, 3 , 1, [3, 1, 4, 16, 5, 128]);
+        SetConjugate( ftl, 3 , 2, [3, 1, 5, 15]);
+        SetConjugate( ftl, 4 , 1, [4, 1, 5, 352]);
+        G := PcpGroupByCollector( ftl );
+        return G;
+
+    elif n = 5 then
+        ftl := FromTheLeftCollector(5);
+        SetRelativeOrder( ftl, 5, 11264);
+        SetRelativeOrder( ftl, 4, 352);
+        SetPower( ftl, 4, [5,5120]);
+        SetConjugate( ftl, 2 , 1, [2, 1, 3, 22, 4, 88]);
+        SetConjugate( ftl, 3 , 1, [3, 1, 4, 16, 5, 128]);
+        SetConjugate( ftl, 3 , 2, [3, 1, 5, 15]);
+        SetConjugate( ftl, 4 , 1, [4, 1, 5, 32]);
+        G := PcpGroupByCollector( ftl );
+        return G;
+
+    else
+
+        return fail;
+
+    fi;
+
+end;

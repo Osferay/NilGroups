@@ -1,3 +1,5 @@
+LoadPackage( "nq" );
+
 ### General.gi
 DeclareProperty( "IsTauGroup", IsGroup );
 InstallTrueMethod( IsTauGroup, IsNilpotentGroup and IsTorsionFree);
