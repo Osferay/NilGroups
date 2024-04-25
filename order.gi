@@ -1,3 +1,7 @@
+#####################################################
+### Returns true if is less or equal in the order ###
+### 0 << 1 << ... << -1 << ...                    ###
+#####################################################
 IntegerOrder := function(a,b)
     if a = 0 then
         return true;
@@ -7,16 +11,21 @@ IntegerOrder := function(a,b)
         if b < 0 then
             return true;
         else
-            return a<b;
+            return a <= b;
         fi;
     else
         if b > 0 then
             return false;
         else
-            return b<a;
+            return b <= a;
         fi;
     fi;
 end;   
+
+#####################################################
+### Returns true if is less or equal in the order ###
+### extended to the exponents of g and h          ###
+#####################################################
 
 ExponentOrder := function(g,h)
     local   e1,
@@ -31,8 +40,12 @@ ExponentOrder := function(g,h)
             return IntegerOrder( e1[i], e2[i] );
         fi;
     od;
-    return false;
+    return true;
 end;
+
+#####################################################
+### Returns true if g << h                        ###
+#####################################################
 
 InstallGlobalFunction( "ConjugacyOrder" , function(g,h) 
 
@@ -60,7 +73,7 @@ PcpOrder := function(U,V)
             return ExponentOrder( pcp1[i], pcp2[i] );
         fi;
     od;
-    return false;
+    return true;
 
 end;
 

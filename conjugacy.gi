@@ -158,26 +158,39 @@ InstallGlobalFunction( "IsConjugateNilGroup", function(G,g,h)
 end );
 
 ####################################################################
-## Helper function of CanonicalConjugateNilGroups, solves the     ##
+## Helper functions of CanonicalConjugateNilGroups, solves the    ##
 ## the problem of finding m minimal with the well-defined order   ##
 ####################################################################
 
-MinimalSol := function(pcp, matrix, exp)
+####################################################################
+## Minimize the function a + x*coef                               ##
+####################################################################
 
-    local   l,  #Flattened matrix
-            a,  #Gcd of the matrix
-            n;  #Solution
+MinEq := function( a, coef)
 
-    #Flatten the matrix
-    l := List( matrix, x -> x[1] );
+    local   d,      #Gcd of coeficients
+            m,      #Minimum of coeficients
+            rep;    #Representation of the minimum
 
-    #Coeficients of the problem
-    a := Gcd(l);
-    n := exp mod a;
+    d := Gcd(coef);
+    m := a mod d;
 
-    return rec( solv := pcp[1]^( n ), exp:= n );
+    if m = a then 
 
+        return rec( min := a, rep := coef*0);
+
+    else
+
+        rep := (m - a)/d;
+        rep := rep * GcdRepresentation( coef );
+        return rec( min := m, rep := rep);
+
+    fi;
 end;
+
+####################################################################
+## Minimize the number of relations used to speed up computations ##
+####################################################################
 
 MinimizeRelations := function(l, exp, o)
 
@@ -199,6 +212,10 @@ MinimizeRelations := function(l, exp, o)
         fi;
     od;
 end;
+
+####################################################################
+## Minimize the number of relations used to speed up computations ##
+####################################################################
 
 MinimalSolFFE := function(pcp, matrix, gens, h, c, o)
 
@@ -297,7 +314,8 @@ end;
 
 CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
-    local   C,      #Centralizer of kanos in G
+    local   igs,    #Igs of G.
+            C,      #Centralizer of kanos in G
             h,      #CanonicalConjugate
             k,      #Conjugate element
             i,j,elm,#Bucle variable
@@ -317,12 +335,13 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             
 
     # the first layer 
-    C := [];
-    h := [];
-    k := [];
+    igs := Igs(G);
+    C   := [];
+    h   := [];
+    k   := [];
     for elm in elms do
         Add( C, G);
-        Add( h, G.1^( Exponents(elms[1])[1] ) );
+        Add( h, G.1^( ExponentsByIgs( igs, elms[1])[1] ) );
         Add( k, One(G) );
     od;
 
@@ -337,8 +356,8 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             fac    := Pcp(C[j], N);
             gens   := AsList(fac);
             c      := elms[j]^k[j];
-            matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
-            exp := Exponents( h[j]^-1 * c )[i];
+            matrix := List( gens, x -> [ ExponentsByIgs( igs, Comm(x,c) )[i] ] );
+            exp := ExponentsByIgs( igs, h[j]^-1 * c )[i];
 
             if matrix = 0*matrix then 
                 #This case is when f is the identity homomorphism.
@@ -353,12 +372,13 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
                 
                 if IsBool( solv ) then 
                     #if not add the minimal element to be conjugated
-                    m    := MinimalSol( pcp, matrix, exp );
-                    h[j] := h[j] * m.solv;
-
+                    m      := List( matrix, x -> x[1] );
+                    m      := MinEq( exp , m ).min;
+                    h[j]   := h[j] * pcp[1]^m;
+                    
                     #Calculate the new exponent
-                    exp  := exp - m.exp;
-                    solv := PcpSolutionIntMat( matrix, [exp] );
+                    exp    := exp - m;
+                    solv   := PcpSolutionIntMat( matrix, [exp] );
                 fi;
 
                 #Calculate the conjugating element
@@ -417,7 +437,8 @@ end );
 
 IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
-    local   C,      #Centralizer of elms in G
+    local   igs,    #Igs of G
+            C,      #Centralizer of elms in G
             h,      #CanonicalConjugate
             k,      #Conjugate element
             i,j,elm,#Bucle variable
@@ -438,13 +459,14 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             
 
     # the first layer 
+    igs := Igs(G);
     C   := G;
     k   := [One(G)];
-    ref := Exponents(elms[1])[1];
+    ref := ExponentsByIgs( igs, elms[1])[1];
     h   := G.1^( ref );
 
     for i in [2..Length(elms)] do
-        if Exponents( elms[i] )[1] <> ref then
+        if ExponentsByIgs( igs, elms[i] )[1] <> ref then
             return false;
         fi;
         k[i] := One(G);
@@ -461,12 +483,12 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
         #For the fist element
         c      := elms[1]^k[1];
-        matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
-        exp := Exponents( h^-1 * c )[i];
+        matrix := List( gens, x -> [ ExponentsByIgs( igs, Comm(x,c) )[i] ] );
+        exp := ExponentsByIgs( igs, h^-1 * c )[i];
 
         if matrix = 0*matrix then 
             #This case is when f is the identity homomorphism.
-            h   := h*pcp[1]^exp;
+            h   := h * pcp[1]^exp;
             Append( matrix, ExponentRelationMatrix( pcp ) );
 
         elif o = 0 then
@@ -474,10 +496,15 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             solv := PcpSolutionIntMat( matrix, [exp] );
 
             if IsBool( solv ) then 
-                m    := MinimalSol( pcp, matrix, exp );
-                h    := h * m.solv;
-                exp  := exp - m.exp;
-                solv := PcpSolutionIntMat( matrix, [exp] );
+
+                m      := List( matrix, x -> x[1] );
+                m      := MinEq( exp , m ).min;
+                h      := h * pcp[1]^m;
+
+                #Calculate the new exponent
+                exp    := exp - m;
+                solv   := PcpSolutionIntMat( matrix, [exp] );
+                
             fi;
 
             # calculate elements
@@ -518,8 +545,8 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         for j in [2..Length(elms)] do
 
             c      := elms[j]^k[j];
-            exp    := Exponents( h^-1 * c )[i];
-            matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
+            exp    := ExponentsByIgs( igs, h^-1 * c )[i];
+            matrix := List( gens, x -> [ ExponentsByIgs( igs, Comm(x,c) )[i] ] );
 
             if matrix = 0*matrix and exp <> 0 then 
                 return false;
@@ -556,7 +583,7 @@ end;
 ## using canonical conjugate elements                               ##
 ######################################################################
 
-InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms, arg...)
+InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms)
 
     local   pcps,
             can;
@@ -660,48 +687,57 @@ IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
             k,      #Generator of V/W
             nat,    #Natural homomorphism N->N/W
             conj,   #Conjugating of h and k
-            xi;     #Conjugating element in each step
+            xi,     #Conjugating element in each step
+            genU,
+            genV;
 
+    #Catch trivial case
+    genU := Reversed( Igs(U) );
+    genV := Reversed( Igs(V) );
+    
+    if Length(genU) <> Length(genV) then
+        return false;
+    fi;
+
+    #Start the algorithm
     x  := One(G);
     Ui := U;
-    H  := IntersectionEfaTerm( Ui , efa[Length(efa)-1]);
-    K  := IntersectionEfaTerm( V , efa[Length(efa)-1]);
+    H  := Subgroup(U, [  ]);
+    K  := Subgroup(V, [  ]);
     N  := G; 
 
     if H <> K then
         return false;
     fi;
 
-    for i in Reversed([1..Length(efa)-2]) do
-        Hi := IntersectionEfaTerm( Ui, efa[i]);
-        Ki := IntersectionEfaTerm( V , efa[i]);
-        
-        if Hi <> H and Ki <> K then
+    for i in [1..Length( genU )] do
+        #Take the intersection
+        Hi := Subgroup(Ui, genU{[1..i]});
+        Ki := Subgroup(V, genV{[1..i]});
 
-            #Get the generators of U/W and V/W
-            h   := AsList( Pcp(Hi, H) )[1];
-            k   := AsList( Pcp(Ki, K) )[1];
+        #Get the generators of U/W and V/W
+        h   := Pcp(Hi, H)[1];
+        k   := Pcp(Ki, K)[1];
 
-            #Define the homomorphism N-> N/W
-            nat := NaturalHomomorphismByNormalSubgroup(N, H );
-            conj:= IsConjugateNilGroup( nat(N), nat(k), nat(h));
+        #Define the homomorphism N-> N/W
+        nat := NaturalHomomorphismByNormalSubgroupNC(N, H );
+        conj:= IsConjugateNilGroup( Image(nat), nat(h), nat(k) );
 
-            if IsBool(conj) then
-                return false;
-            else
-                xi  := PreImageByQuotient( N, nat, conj );
-                x   := x*xi;
-                H   := Hi^xi;
-                Ui  := Ui^xi;
-                K   := Ki;
-                N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
-            fi;
-        
-        elif Hi = H and Ki = K then 
-            #Process next
-        else
+        if IsBool(conj) then
             return false;
+        else
+            #They are conjugated, update values
+            xi  := PreImageByQuotient( N, nat, conj );
+            x   := x * xi;
+            H   := Hi^ xi;
+            Ui  := Ui^ xi;
+            genU:= Reversed( Igs(Ui) );
+            K   := Ki;
+
+            #Update the normalizer
+            N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
         fi;
+        
     od;
 
     return x;
@@ -726,65 +762,88 @@ InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
 
 end );    
 
+
 #######################################################################
 ## Local function to calculate the canonical conjugate subgroup of  ##
 ## a subgroup in G                                                   ##
 #######################################################################
 
-CanonicalConjugateSubgroupNilGroupSeries := function(G, U, efa)
+CanonicalConjugateSubgroupNilGroupSeries := function(G, U)
 
-    local   x,      #Conjugating element of U and V
-            Ui,     #Conjuate of U in each step
-            H,      #Intersection of previous step of U
-            K,      #Intersection of previous step of V
-            gens,
-            N,      #Normalizer of W
-            i,      #Bucle variable
-            Hi,     #Intersection in each step of U
-            Ki,     #Intersection in each step of V
-            h,      #Generator of U/W
-            k,      #Generator of V/W
-            nat,    #Natural homomorphism N->N/W
-            kan,    #Canonical conjugates of h and k
-            xi;     #Conjugating element in each step
+    local   gU,     #Generators of U
+            x,      #Conjugating element
+            Ui,     #U^xi in each step
+            H,      #U intersection with Gi-1
+            K,      #Canonical subgroup in each step
+            N,      #Normalizer
+            gN,     #Generators of N
+            gK,     #Generators of K
+            Hi,     #U intersection with Gi
+            h,      #Generator of H/Hi
+            nat,    #Homomorphism N -> N/H
+            f,      #Function N -> Hi, n -> [h,n]
+            xi,     #Conjuagting element in each step
+            exp,    #Exponent for the equation
+            l,      #Coeficients for the equation
+            solv,   #Minimal solution
+            k;      #Generator of K/Ki
 
+    gU := Reversed( Igs(U) );
     x  := One(G);
     Ui := U;
-    H  := IntersectionEfaTerm( Ui , efa[Length(efa)-1]);
-    N  := G; 
+    H  := Subgroup( U, [ ]);
     K  := H;
+    N  := G; 
+    gN := Igs(N);
+    gK := [];
 
-    for i in Reversed([1..Length(efa)-2]) do
+    for i in [1..Length( gU )] do
     
-        Hi := IntersectionEfaTerm( Ui, efa[i]);
+        Hi  := SubgroupByIgs( Ui, gU{[1..i]} );
+        h   := Pcp(Hi, H)[1];
+        nat := NaturalHomomorphismByNormalSubgroup(N, H );
         
-        if Hi <> H then
+        #Calculate the minimum
+        f   := List( gN, x -> Comm(h,x) );
+        f   := Filtered( f, x -> x in H);
+        xi  := One(G);
 
-            #Get the generators of U/W and V/W
-            h   := AsList( Pcp(Hi, H) )[1];
-
-            #Define the homomorphism N-> N/W
-            nat := NaturalHomomorphismByNormalSubgroup(N, H );
-            kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
-            
-            k   := PreImageByQuotient(N, nat, kan.kano[1]);
-            xi  := PreImageByQuotient(N, nat, kan.conj[1]);
-
-            x   := x*xi;
-            H   := Hi^xi;
-            Ui  := Ui^xi;
-            
-            N   := PreImage( nat, kan.cent[1] );
-
-            gens := AddIgsToIgs( Igs(K), [k]);
-            K    := Subgroup( G, gens);
+        for j in [Length(gU)-i+2 .. Length(gU)] do
         
-        elif Hi = H then 
-            #Process next
-        fi;
+            exp  := Exponents(h^xi)[j];
+            l    := List( f, x -> Exponents(x)[j] );
+            
+            if l <> l*0 then 
+                solv := MinEq( exp, l).rep;
+                solv := MappedVector( solv, gN);
+
+                xi   := xi * solv;
+                
+                gN   := gN{ PositionsProperty( l, x -> x = 0) };
+                f    := f { PositionsProperty( l, x -> x = 0) };
+            fi;
+        
+        od;
+
+        #Update the subgroup
+        k   := h ^ xi;
+        x   := x * xi;
+        Ui  := Ui^ xi;
+        H   := Hi^ x;
+        gU  := Reversed( Igs(Ui) );
+        
+        #Get the normalizer
+        N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
+        gN  := Igs(N);
+        
+        #Update the canonical group
+        gK  := AddIgsToIgs( gK, [k]);
+
     od;
+    
+    K   := Subgroup( G, gK);
 
-    return rec( kano := K, conj := x, norm := N);
+    return rec( kano := K, conj := x, norm := N, gens := gK );
 
 end;
 
@@ -799,6 +858,39 @@ InstallGlobalFunction( "CanonicalConjugateSubgroupNilGroup", function(G, U)
         Error( "U has to be subgroups of G.");
     fi;
 
-    return CanonicalConjugateSubgroupNilGroupSeries(G, U, PcpSeries(G) ); 
+    return CanonicalConjugateSubgroupNilGroupSeries(G, U); 
 
 end );  
+
+IsMultipleConjugateNilGroup := function(G, list1, list2) 
+    
+    local   x,
+            Ui,
+            gi,
+            hi,
+            xi;
+
+    if Length(list1) <> Length(list2) then
+        return false;
+    fi;
+
+    x := One(G);
+
+    for i in [ 1..Length(list1) ] do
+        
+        Ui := CentralizerNilGroup( G, list2{[1..i]});
+        gi := list1[i]^x;
+        hi := list2[i];
+        xi := IsCanonicalConjugateNilGroup(Ui, gi, hi);
+
+        if IsBool(xi) then
+            return false;
+        else
+            x := xi;
+        fi;
+    
+    od;
+
+    return rec( U := Ui, x := x );
+
+end;

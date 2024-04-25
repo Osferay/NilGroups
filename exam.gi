@@ -209,25 +209,35 @@ InstallGlobalFunction( MinimalTauGroups, function(h, c, n)
 
 end );
 
+########################################################################################
+##  Examples of finitely generated nilpotent groups used to check performance         ##
+########################################################################################
+
 SomeNilpotentGroups := function( n )
-    local   tau,
+    local   G,
+            tau,
             et,
-            a,b,x,
+            a,b,c,x,y,
             rengel,
+            rengel2,
+            comm,
             H,
             ftl;
 
     if n = 1 then
+        #Torsion-free of hirsch length 4
         tau := [0, 13, 7, 3];
         G := TauGroupByVector(tau, 4);
         return G;
     
     elif n = 2 then 
+        #Torsion-free of hirsch length 5
         tau := [11, 0, 0, 8, 0, 16, 0, 15, 0, 0];
         G := TauGroupByVector(tau, 5);
         return G;
     
     elif n = 3 then
+        #[0, 0, 0, 0, 0, 4, 2, 2]
         et := ExpressionTrees( "a", "b", "x" );
         a := et[1];; b := et[2];; x := et[3];;
         rengel := LeftNormedComm( [a,x,x,x] );
@@ -236,6 +246,7 @@ SomeNilpotentGroups := function( n )
         return G;
     
     elif n = 4 then
+        #[0, 0, 0, 0, 3872]
         ftl := FromTheLeftCollector(5);
         SetRelativeOrder( ftl, 5, 3872);
         SetConjugate( ftl, 2 , 1, [2, 1, 3, 22, 4, 88]);
@@ -256,7 +267,24 @@ SomeNilpotentGroups := function( n )
         SetConjugate( ftl, 4 , 1, [4, 1, 5, 32]);
         G := PcpGroupByCollector( ftl );
         return G;
+    
+    elif n = 6 then
 
+        et := ExpressionTrees( "a", "b", "c", "x", "y" );
+        a := et[1];; b := et[2];; c := et[3];; x := et[4];; y := et[5];;
+        rengel := LeftNormedComm( [a,x,x,x] );
+        rengel2:= LeftNormedComm( [c,c,x,x,x] );
+        H := rec( generators := et, relations := [rengel^3, rengel2, b^356] );
+        G := NilpotentQuotient( H, [x], 4);
+        return G;
+
+    elif n = 7 then
+        et := ExpressionTrees( "a", "b", "x" );
+        a := et[1];; b := et[2];; x := et[3];;
+        rengel := LeftNormedComm( [a,x,x,x,x,x] );
+        H := rec( generators := et, relations := [rengel] );
+        G := NilpotentQuotient( H, [x], 9 );
+        return G;
     else
 
         return fail;
