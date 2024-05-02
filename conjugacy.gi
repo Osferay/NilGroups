@@ -605,27 +605,25 @@ end );
 
 NormalizerNilGroupSeries := function(G, U, efa)
 
-    local   N,      #Normalizer of U in G
+    local   genU,   #Generators of U
+            N,      #Normalizer of U in G
             H,      #Intersection of the previous step
             Hi,     #Intersection on each step
             i,      #Bucle variable
             h,      #Generator of U/V
             nat;    #Natural homomorphism N->N/V
-
-    N    := G;
-    H    := IntersectionEfaTerm( U, efa[Length(efa)-1] );
-
-    for i in Reversed([1..Length(efa)-2]) do
     
-        Hi  := IntersectionEfaTerm(U, efa[i]);
+    genU := Reversed( Igs(U) );
+    N    := G;
+    H  := Subgroup(U, [ genU[1] ]);
 
-        if Hi <> H then
-            h   := AsList( Pcp(Hi, H) );
-            nat := NaturalHomomorphismByNormalSubgroup(N, H);
-            N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(h) ) );
-            H   := Hi;
-
-        fi;
+    for i in [2..Length(genU)] do
+    
+        Hi := Subgroup(U, genU{[1..i]});
+        h   := Pcp(Hi, H)[1];
+        nat := NaturalHomomorphismByNormalSubgroup(N, H);
+        N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(h) ) );
+        H   := Hi;
 
     od;
 
@@ -762,7 +760,6 @@ InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
 
 end );    
 
-
 #######################################################################
 ## Local function to calculate the canonical conjugate subgroup of  ##
 ## a subgroup in G                                                   ##
@@ -770,80 +767,55 @@ end );
 
 CanonicalConjugateSubgroupNilGroupSeries := function(G, U)
 
-    local   gU,     #Generators of U
-            x,      #Conjugating element
-            Ui,     #U^xi in each step
-            H,      #U intersection with Gi-1
-            K,      #Canonical subgroup in each step
-            N,      #Normalizer
-            gN,     #Generators of N
-            gK,     #Generators of K
-            Hi,     #U intersection with Gi
-            h,      #Generator of H/Hi
-            nat,    #Homomorphism N -> N/H
-            f,      #Function N -> Hi, n -> [h,n]
-            xi,     #Conjuagting element in each step
-            exp,    #Exponent for the equation
-            l,      #Coeficients for the equation
-            solv,   #Minimal solution
-            k;      #Generator of K/Ki
+    local   x,      #Conjugating element of U and V
+            Ui,     #Conjuate of U in each step
+            H,      #Intersection of previous step of U
+            K,      #Intersection of previous step of V
+            gK,
+            N,      #Normalizer of W
+            i,      #Bucle variable
+            Hi,     #Intersection in each step of U
+            Ki,     #Intersection in each step of V
+            h,      #Generator of U/W
+            k,      #Generator of V/W
+            nat,    #Natural homomorphism N->N/W
+            kan,    #Canonical conjugates of h and k
+            xi;     #Conjugating element in each step
 
-    gU := Reversed( Igs(U) );
     x  := One(G);
     Ui := U;
+    N  := G; 
+    gU := Reversed( Cgs(U) );
     H  := Subgroup( U, [ ]);
     K  := H;
-    N  := G; 
-    gN := Igs(N);
     gK := [];
 
-    for i in [1..Length( gU )] do
-    
+    for i in [1..Length(gU)] do
+
+        #Get the generators of U/W
         Hi  := SubgroupByIgs( Ui, gU{[1..i]} );
         h   := Pcp(Hi, H)[1];
+
+        #Define the homomorphism N-> N/W
         nat := NaturalHomomorphismByNormalSubgroup(N, H );
+        kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
         
-        #Calculate the minimum
-        f   := List( gN, x -> Comm(h,x) );
-        f   := Filtered( f, x -> x in H);
-        xi  := One(G);
+        k   := PreImagesRepresentative(nat, kan.kano[1]);
+        xi  := PreImagesRepresentative(nat, kan.conj[1]);
 
-        for j in [Length(gU)-i+2 .. Length(gU)] do
+        x   := x*xi;
+        H   := Hi^xi;
+        Ui  := Ui^xi;
+        gU  := Reversed( Cgs(Ui) );
         
-            exp  := Exponents(h^xi)[j];
-            l    := List( f, x -> Exponents(x)[j] );
-            
-            if l <> l*0 then 
-                solv := MinEq( exp, l).rep;
-                solv := MappedVector( solv, gN);
+        N   := PreImage( nat, kan.cent[1] );
 
-                xi   := xi * solv;
-                
-                gN   := gN{ PositionsProperty( l, x -> x = 0) };
-                f    := f { PositionsProperty( l, x -> x = 0) };
-            fi;
-        
-        od;
-
-        #Update the subgroup
-        k   := h ^ xi;
-        x   := x * xi;
-        Ui  := Ui^ xi;
-        H   := Hi^ x;
-        gU  := Reversed( Igs(Ui) );
-        
-        #Get the normalizer
-        N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
-        gN  := Igs(N);
-        
-        #Update the canonical group
-        gK  := AddIgsToIgs( gK, [k]);
+        Add( gK, k );
+        K    := Subgroup( G, gK);
 
     od;
-    
-    K   := Subgroup( G, gK);
 
-    return rec( kano := K, conj := x, norm := N, gens := gK );
+    return rec( kano := K, conj := x, norm := N);
 
 end;
 
@@ -862,13 +834,39 @@ InstallGlobalFunction( "CanonicalConjugateSubgroupNilGroup", function(G, U)
 
 end );  
 
+ConjugateList := function(G, list1)
+
+    local   x,
+            Ui,
+            gi,
+            list2,
+            xi,
+            i;
+
+    x := One(G);
+    list2 := [];
+
+    for i in [ 1..Length(list1) ] do
+        
+        Ui := CentralizerNilGroup( G, list1{[1..i]});
+        xi := Random(Ui);
+        x := x * xi;
+        Add( list2 , list1[i]^x );
+    
+    od;
+
+    return rec( new := list2, conj := x) ;
+
+end;
+
 IsMultipleConjugateNilGroup := function(G, list1, list2) 
     
     local   x,
             Ui,
             gi,
             hi,
-            xi;
+            xi,
+            i;
 
     if Length(list1) <> Length(list2) then
         return false;
@@ -881,12 +879,12 @@ IsMultipleConjugateNilGroup := function(G, list1, list2)
         Ui := CentralizerNilGroup( G, list2{[1..i]});
         gi := list1[i]^x;
         hi := list2[i];
-        xi := IsCanonicalConjugateNilGroup(Ui, gi, hi);
-
+        xi := IsCanonicalConjugateNilGroup(Ui, [gi, hi]);
         if IsBool(xi) then
             return false;
         else
-            x := xi;
+            xi := xi.conj[1]*xi.conj[2]^-1;
+            x := x * xi;
         fi;
     
     od;

@@ -19,7 +19,6 @@ for n in [1..5] do
         t := Runtime();
         can := IsCanonicalConjugateNilGroup(G, elms);
         t := Runtime() - t;
-        Print(t, "\n");
         Add(ts1, t);
         for k in [1..Length(elms)] do
             if elms[k]^can.conj[k] <> can.kano then Error("Incorrect conjugating element."); fi;
@@ -34,6 +33,7 @@ od;
 ############################################################################################
 ##  Experiments with large nilpotent groups                                               ##
 ############################################################################################
+
 for n in [6,7] do
     ts1 := [];
     ts2 := [];
@@ -52,7 +52,6 @@ for n in [6,7] do
         t := Runtime();
         can := IsCanonicalConjugateNilGroup(G, elms);
         t := Runtime() - t;
-        Print(t, "\n");
         Add(ts1, t);
         for k in [1..Length(elms)] do
             if elms[k]^can.conj[k] <> can.kano then Error("Incorrect conjugating element."); fi;

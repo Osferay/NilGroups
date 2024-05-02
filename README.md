@@ -1,23 +1,25 @@
 # Introduction
 
-Functions to work with infinite torsion-free nilpotent groups of small Hirsch rank (5 or less).
+Functions to work with infinite nilpotent groups and torsion-free nilpotent groups, Tau Groups in short.
 
 # Contents
 
-- taugrp.gd:    Definition of the functions 
+- nilgrp.gd:    Definition of the functions 
 - general.gi:   Offers some functions that are general for the other files.
-- exam.gi:      Functions to generate some minimal T-groups.
-- series.gi:    Functions to generate the isolator series of a T-group.
-- iso.gi:       Functions to check if two T-groups are isomorphic (**CURRENTLY NON WORIKING**).
-- order.gi:     Functions to order elements with the order 0<<1<<...<<-1
-- conjugacy.gi: **WORKS FOR ALL NILPOTENT GROUPS.** Functions to solve the following problems:
+- exam.gi:      Functions to generate some minimal Tau groups and the groups used in experiments.
+- series.gi:    Functions to generate the isolator series of a Tau group.
+- iso.gi:       Functions to check if two Tau groups are isomorphic (**CURRENTLY NON WORIKING**).
+- order.gi:     Functions to order elements with the order 0<<1<<...<<-1...
+- conjugacy.gi: Functions to solve the following problems:
   - Centralizer problem. CentralizerNilGroup(G, elms)
   - Conjugacy problem. IsConjugateNilGroup(G, g, h), IsCanonicalConjugateNilGroup(G, elms)
   - Canonical conjugate. CanonicalConjugateNilGroup(G, elms)
   - Normalizer problem. NormalizerNilGroup(G, U)
   - Subgroup Conjugacy problem. IsConjugateSubgroupsNilGroup(G, U, V)
   - Canonical conjugate subgroup. CanonicalConjugateSubgroupNilGroup(G, U)
+- inter.gi: Intersection functions.
 - deprecated.gi: Functions that are no longer used but can be recovered if necessary.
+- experiments.g: Script to see the performance of the algorithms.
 
 # Cites
 

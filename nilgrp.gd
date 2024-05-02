@@ -44,10 +44,10 @@ DeclareGlobalFunction( "NormalizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateSubgroupsNilGroup" );
 DeclareGlobalFunction( "CanonicalConjugateSubgroupNilGroup");
 
-Reread( "/home/oscar/T-Groups/general.gi" );
-Reread( "/home/oscar/T-Groups/series.gi" );
-Reread( "/home/oscar/T-Groups/exam.gi" );
-#Reread( "/home/oscar/T-Groups/iso.gi" );
-Reread( "/home/oscar/T-Groups/order.gi" );
-Reread( "/home/oscar/T-Groups/inter.gi" );
-Reread( "/home/oscar/T-Groups/conjugacy.gi" );
+Reread( "/home/oscar/NilGroups/general.gi" );
+Reread( "/home/oscar/NilGroups/series.gi" );
+Reread( "/home/oscar/NilGroups/exam.gi" );
+#Reread( "/home/oscar/NilGroups/iso.gi" );
+Reread( "/home/oscar/NilGroups/order.gi" );
+Reread( "/home/oscar/NilGroups/inter.gi" );
+Reread( "/home/oscar/NilGroups/conjugacy.gi" );
