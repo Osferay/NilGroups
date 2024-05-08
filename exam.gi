@@ -2,13 +2,14 @@
 ##  Examples of finitely generated torsion-free nilpotent groups, T-Groups in short   ##
 ########################################################################################
 
-InstallGlobalFunction( MinimalTauGroups, function(h, c, n)
-#   h is the hirsch number
-#   c is the class if the group
-#   n is an optional argument in case that there are multiple groups 
-#       with classe c and Hirsch number h
+InstallGlobalFunction( MinimalTauGroups, function( arg )
+    #The arguments of the function are the follwing
+    #h is the hirsch number
+    #c is the class of the group
+    #n is an optional argument in case that there are multiple groups with classe c and Hirsch number h
 
-    local   N,                      #Auxiliar matrix
+    local   h,c,n,                  #Inputs
+            N,                      #Auxiliar matrix
             t,                      #Matrix t of relations
             ftl,                    #Collector of relations
             rel,                    #Auxiliar variable to store each relation
@@ -17,6 +18,15 @@ InstallGlobalFunction( MinimalTauGroups, function(h, c, n)
             i,j,k,                  #bucle variable
             TauT,                   #Stores the type of the group
             G;                      #Stores the group to return
+
+    #Catch arguments
+    h := arg[1];
+    c := arg[2];
+    if Length(arg = 3) then
+        n := arg[3];
+    else 
+        n := 1;
+    fi;
 
     if (h>5 or c>4) then
         Error(" The example function only works for h<5 and c<4.\n");
@@ -214,15 +224,14 @@ end );
 ########################################################################################
 
 SomeNilpotentGroups := function( n )
-    local   G,
-            tau,
-            et,
-            a,b,c,x,y,
-            rengel,
-            rengel2,
-            comm,
-            H,
-            ftl;
+    local   G,          #The group to return
+            tau,        #Vector that defines tau groups
+            et,         #Expresion tree
+            a,b,c,x,y,z,#
+            rengel,     #Right engel relations
+            rengel2,    #Right engel relations
+            H,          #Denominator of the nilpotent qoutient
+            ftl;        #From the left collectors
 
     if n = 1 then
         #Torsion-free of hirsch length 4
@@ -285,6 +294,17 @@ SomeNilpotentGroups := function( n )
         H := rec( generators := et, relations := [rengel] );
         G := NilpotentQuotient( H, [x], 9 );
         return G;
+
+    elif n = 8 then 
+
+        et := ExpressionTrees( "a", "b", "c", "x", "y", "z" );
+        a := et[1];; b := et[2];; c := et[3];; x := et[4];; y := et[5];; z := et[6];;
+        rengel := LeftNormedComm( [a,x,x,x] );
+        rengel2:= LeftNormedComm( [c,c,x,x] );
+        H := rec( generators := et, relations := [rengel^2, rengel2^5, b^625, z^512, y^80] );
+        G := NilpotentQuotient( H, [x], 3);
+        return G;
+
     else
 
         return fail;

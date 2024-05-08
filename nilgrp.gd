@@ -8,6 +8,8 @@ DeclareGlobalFunction( "Pref" );
 DeclareGlobalFunction( "TauVector" );
 DeclareGlobalFunction( "MatrixRelationsByVector" );
 DeclareGlobalFunction( "TauGroupByVector" );
+DeclareGlobalFunction( "RandomElementRangeGenerators" );    
+DeclareGlobalFunction( "RandomSubgroup" );
 
 ### Exam.gi
 DeclareGlobalFunction( "MinimalTauGroups" );
@@ -26,14 +28,13 @@ DeclareGlobalFunction( "SameGenus" );
 
 ### Inter.gi
 
-DeclareGlobalFunction( "IntersectionEfaTerm" );
-DeclareGlobalFunction( "InducedEfaSeries" );
-DeclareGlobalFunction( "PcpsOfInducedEfaSeries" );
+DeclareGlobalFunction( "IntersectionSeriesTerm" );
+DeclareGlobalFunction( "InducedIntersectionSeries" );
+DeclareGlobalFunction( "PcpsOfInducedIntersectionSeries" );
 
 ### order.gi
 
 DeclareGlobalFunction( "ConjugacyOrder" );
-DeclareGlobalFunction( "SubgroupOrder" );
 
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
@@ -41,8 +42,9 @@ DeclareGlobalFunction( "IsConjugateNilGroup" );
 DeclareGlobalFunction( "CanonicalConjugateNilGroup" );
 DeclareGlobalFunction( "IsCanonicalConjugateNilGroup" );
 DeclareGlobalFunction( "NormalizerNilGroup" );
-DeclareGlobalFunction( "IsConjugateSubgroupsNilGroup" );
-DeclareGlobalFunction( "CanonicalConjugateSubgroupNilGroup");
+DeclareGlobalFunction( "IsConjugateSubgroups" );
+DeclareGlobalFunction( "CanonicalConjugateSubgroup");
+DeclareGlobalFunction( "IsCanonicalConjugateSubgroups" );
 
 Reread( "/home/oscar/NilGroups/general.gi" );
 Reread( "/home/oscar/NilGroups/series.gi" );

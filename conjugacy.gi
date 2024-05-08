@@ -672,7 +672,7 @@ end;
 ## Local function to calculate is two subgroups of G are conjugated  ##
 #######################################################################
 
-IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
+IsConjugateSubgroupsNilGroup := function(G, U, V)
     local   x,      #Conjugating element of U and V
             Ui,     #Conjuate of U in each step
             H,      #Intersection of previous step of U
@@ -686,8 +686,8 @@ IsConjugateSubgroupsNilGroupSeries := function(G, U, V, efa)
             nat,    #Natural homomorphism N->N/W
             conj,   #Conjugating of h and k
             xi,     #Conjugating element in each step
-            genU,
-            genV;
+            genU,   #Generators of U
+            genV;   #Generators of V
 
     #Catch trivial case
     genU := Reversed( Igs(U) );
@@ -746,7 +746,7 @@ end;
 ## Global function to calculate is two subgroups of G are conjugated ##
 #######################################################################
 
-InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
+InstallGlobalFunction( "IsConjugateSubgroups", function(G, U, V)
 
     if not (IsSubgroup(G,U) and IsSubgroup(G,V) ) then
         Error( "U and V have to be subgroups of G.");
@@ -755,65 +755,114 @@ InstallGlobalFunction( "IsConjugateSubgroupsNilGroup", function(G, U, V)
     if U = V then
         return One(G);
     else
-        return IsConjugateSubgroupsNilGroupSeries(G, U, V, EfaSeries(G));
+        return IsConjugateSubgroupsNilGroupSeries(G, U, V);
     fi;
 
 end );    
+
+#######################################################################
+## Local function to calculate the reduced preimage in the qoutient  ##
+#######################################################################
+
+ReducedPreimage := function( elm, basis )
+
+    local   exp,    #Exponents of elm
+            l,      #Leading exponents of the elements in the basis
+            d,      #Depth of the elements in the basis
+            v,      #Reduced preimage
+            i,      #Bucle variable
+            r,      #Residuo
+            x;      #Expoenent of the element in the basis
+
+    v     := elm ;
+    basis := Reversed(basis);
+    exp   := Exponents( v );
+    l     := List( basis, LeadingExponent );
+    d     := List( basis, Depth);
+    
+
+    for i in [1..Length(d)] do
+
+        if exp[ d[i] ]<0 or exp[ d[i] ]>(l[i]-1) then
+            r   :=  exp[ d[i] ] mod l[i];
+            x   := (exp[ d[i] ] - r)/l[i];
+            v   := v * basis[i]^-x;
+            exp := Exponents( v );
+        fi;
+    od;
+
+    return v;
+
+end;
+
+#######################################################################
+## Local function to calculate the reduced canonical form            ##
+#######################################################################
+
+ReducedCanonical := function(G, U, elms)
+
+    local   nat,    #Natural homomrphism from G to G/U
+            kan,    #Canonical conjugate of the image of g by nat
+            k,      #Reduced preimage of the canonical conjugate
+            v,      #Conjugating element
+            N;      #Normalizer
+
+    nat := NaturalHomomorphismByNormalSubgroup(G, U );
+    kan := CanonicalConjugateNilGroup( nat(G), List( elms, nat ));
+    k   := [];
+    v   := [];
+
+    for i in [1..Length(elms)] do
+        k[i]:= PreImagesRepresentative(nat, kan.kano[i]);
+        v[i]:= PreImagesRepresentative(nat, kan.conj[i]);
+        k[i]:= ReducedPreimage(k[i] , Cgs(U));
+    od;
+
+    N   := PreImage( nat, kan.cent[1] );
+
+    return rec( kan := k, v := v, N := N );
+
+end;
 
 #######################################################################
 ## Local function to calculate the canonical conjugate subgroup of  ##
 ## a subgroup in G                                                   ##
 #######################################################################
 
-CanonicalConjugateSubgroupNilGroupSeries := function(G, U)
+CanonicalConjugateSubgroupNilGroup := function(G, U)
 
-    local   x,      #Conjugating element of U and V
-            Ui,     #Conjuate of U in each step
-            H,      #Intersection of previous step of U
-            K,      #Intersection of previous step of V
-            gK,
-            N,      #Normalizer of W
+    local   gU,     #Generators of U 
+            N,      #Normalizer of K
+            x,      #Conjugating element
+            gK,     #Generators of K
+            Ui,     #Subgroup Ui in the current step
+            K,      #Canonical subgroup
             i,      #Bucle variable
-            Hi,     #Intersection in each step of U
-            Ki,     #Intersection in each step of V
-            h,      #Generator of U/W
-            k,      #Generator of V/W
-            nat,    #Natural homomorphism N->N/W
-            kan,    #Canonical conjugates of h and k
-            xi;     #Conjugating element in each step
+            u,      #Generator on each step
+            kan;    #Canonical conjugates of h
 
-    x  := One(G);
-    Ui := U;
-    N  := G; 
     gU := Reversed( Cgs(U) );
-    H  := Subgroup( U, [ ]);
-    K  := H;
+    N  := G; 
+    x  := One(G);
+    Ui := Subgroup( U, [ ]);
     gK := [];
 
     for i in [1..Length(gU)] do
 
-        #Get the generators of U/W
-        Hi  := SubgroupByIgs( Ui, gU{[1..i]} );
-        h   := Pcp(Hi, H)[1];
+        u := NormedPcpElement( gU[i]^x );
+        kan := ReducedCanonical(N, Ui, u);
 
-        #Define the homomorphism N-> N/W
-        nat := NaturalHomomorphismByNormalSubgroup(N, H );
-        kan := CanonicalConjugateNilGroup( nat(N), [nat(h)]);
+        x   := x*kan.v[1];
+        Ui  := SubgroupByIgs(U, gU{[1..i]} );
+        Ui   := Ui^x;
         
-        k   := PreImagesRepresentative(nat, kan.kano[1]);
-        xi  := PreImagesRepresentative(nat, kan.conj[1]);
+        N   := kan.N;
 
-        x   := x*xi;
-        H   := Hi^xi;
-        Ui  := Ui^xi;
-        gU  := Reversed( Cgs(Ui) );
-        
-        N   := PreImage( nat, kan.cent[1] );
-
-        Add( gK, k );
-        K    := Subgroup( G, gK);
+        Add( gK, kan.kan[1] );
 
     od;
+    
+    K    := Subgroup( G, gK );
 
     return rec( kano := K, conj := x, norm := N);
 
@@ -824,7 +873,7 @@ end;
 ## a subgroup in G                                                   ##
 #######################################################################
 
-InstallGlobalFunction( "CanonicalConjugateSubgroupNilGroup", function(G, U)
+InstallGlobalFunction( "CanonicalConjugateSubgroup", function(G, U)
 
     if not IsSubgroup(G,U) then
         Error( "U has to be subgroups of G.");
@@ -833,6 +882,86 @@ InstallGlobalFunction( "CanonicalConjugateSubgroupNilGroup", function(G, U)
     return CanonicalConjugateSubgroupNilGroupSeries(G, U); 
 
 end );  
+
+######################################################################
+## Local function to calculate solve the conjugacy problem in G     ##
+## using canonical conjugate elements                               ##
+######################################################################
+
+IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
+
+    local   gU,     #Generators of U 
+            gV,     #Generators of V
+            N,      #Normalizer of K
+            x,      #Conjugating element of U
+            y,      #Conjugating element of V
+            gK,     #Generators of K
+            Ui,     #Subgroup Ui in the current step
+            K,      #Canonical subgroup
+            i,      #Bucle variable
+            u,      #Generator on each step of U
+            v,      #Generator on each step of V
+            kU;     #Canonical conjugates of 
+
+    gU := Reversed( Cgs(U) );
+    gV := Reversed( Cgs(V) );
+    N  := G; 
+    x  := One(G);
+    y  := One(G);
+    Ui := Subgroup( U, [ ]);
+    gK := [];
+
+    if Length(gU) <> Length(gV) then
+        return false;
+    fi;
+
+    for i in [1..Length(gU)] do
+
+        u := NormedPcpElement( gU[i]^x );
+        v := NormedPcpElement( gV[i]^y );
+
+        kU := ReducedCanonical(N, Ui, [u,v]);
+
+        if kU.kan[1] = kU.kan[2] then
+            x   := x*kU.v[1];
+            Ui  := SubgroupByIgs(U, gU{[1..i]} );
+            Ui  := Ui^x;
+
+            y   := y*kU.v[2];
+        
+            N   := kU.N;
+
+            Add( gK, kU.kan[1] );
+        else
+            return false;
+        fi;
+
+    od;
+    
+    K    := Subgroup( G, gK );
+
+    return rec( kano := K, conj := [x,y], norm := N);
+
+end;
+
+######################################################################
+## Global function to calculate solve the conjugacy problem in G    ##
+## using canonical conjugate elements                               ##
+######################################################################
+
+InstallGlobalFunction( "IsCanonicalConjugateSubgroups", function(G, U, V)
+
+    if not (IsSubgroup(G,U) and IsSubgroup(G,V) ) then
+        Error( "U and V have to be subgroups of G.");
+    fi;
+
+    if U = V then
+        return One(G);
+    else
+        return IsCanonicalConjugateSubgroupNilGroup(G, U, V);
+    fi;
+
+end );    
 
 ConjugateList := function(G, list1)
 

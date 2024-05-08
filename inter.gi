@@ -3,7 +3,7 @@
 ## of the efa series of G                                            ##
 #######################################################################
 
-InstallGlobalFunction( "IntersectionEfaTerm", function(U, term)
+InstallGlobalFunction( "IntersectionSeriesTerm", function(U, term)
 
     local   gens,   #Generators of U
             filt,   #Filtered generators that are in U and term
@@ -28,44 +28,68 @@ InstallGlobalFunction( "IntersectionEfaTerm", function(U, term)
 
 end );
 
-InstallGlobalFunction( "InducedEfaSeries", function(G, U) 
-    
-    local   efa,
-            iefa,
-            term,
-            iterm;
+#######################################################################
+## Global function to calculate the intersection of U with a the     ##
+## terms of the efa series of G                                      ##
+#######################################################################
 
-    efa  := EfaSeries(G);
-    iefa := [];
+InstallGlobalFunction( "InducedIntersectionSeries", function(U, series) 
     
-    for term in efa do
-        iterm := IntersectionEfaTerm(U, term);
+    local   iseries,    #Intersection with the series
+            term,       #Term of the series
+            iterm;      #Intersection term
 
-        if Size(iterm) <> 1 and (not iterm in iefa) then
-            Add(iefa, iterm);
+    iseries := [];
+    
+    for term in series do
+        iterm := IntersectionSeriesTerm(U, term);
+
+        if Size(iterm) <> 1 and (not iterm in iseries) then
+            Add(iseries, iterm);
+
         elif Size(iterm) = 1 then
-            Add(iefa, iterm);
+            Add(iseries, iterm);
             break;
         fi;
     od;
     
-    return iefa;
+    return iseries;
 
 end );
 
-InstallGlobalFunction( "PcpsOfInducedEfaSeries", function(G,U)
+#######################################################################
+## Global function to calculate the pcps of the induced series       ##
+##                                                                   ##
+#######################################################################
 
-    local   iefa,
-            pcps,
-            i;
+InstallGlobalFunction( "PcpsOfInducedIntersectionSeries", function(U, series)
 
-    iefa := InducedEfaSeries(G, U);
+    local   iseries,    #Intersection series
+            pcps,       #Pcps to return
+            i;          #Bucle variable
+
+    iseries := InducedIntersectionSeries(U, series);
     pcps := [];
 
-    for i in [1..Length(iefa)-1] do
-        Add(pcps, Pcp( iefa[i], iefa[i+1] ) );
+    for i in [1..Length(iseries)-1] do
+        Add(pcps, Pcp( iseries[i], iseries[i+1] ) );
     od;
 
     return pcps;
 
 end );
+
+IntersectionSubgroupsNilGroups := function(G, U, V)
+
+    local   series, #Pcp series of G
+            Gn,     #Last term of pcp series
+            Un,
+            Vn;
+
+    series := Reversed( PcpSeries(G) );
+    Gn     := series[1];
+
+    Un     := IntersectionSeriesTerm(U, Gn);
+    Vn     := IntersectionSeriesTerm(V, Gn);
+
+end;
