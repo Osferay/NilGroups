@@ -14,7 +14,7 @@ InstallGlobalFunction( "IntersectionSeriesTerm", function(U, term)
         return term; 
     fi;
     
-    gens    := Igs(U);
+    gens    := Cgs(U);
     filt    := Filtered( gens, g -> g in term );
 
     if IsEmpty(filt) then
@@ -24,7 +24,8 @@ InstallGlobalFunction( "IntersectionSeriesTerm", function(U, term)
         pos := Position(gens, filt[1]);
     fi;
 
-    return Subgroup( term, gens{[pos..Length(gens)]} );
+    return rec( Uterm := Subgroup( term, gens{[pos..Length(gens)]} ),
+                gens  := gens{[pos..Length(gens)]} );
 
 end );
 
@@ -87,9 +88,13 @@ IntersectionSubgroupsNilGroups := function(G, U, V)
             Vn;
 
     series := Reversed( PcpSeries(G) );
-    Gn     := series[1];
+    Gn     := series[2];
+    gn     := Pcp(Gn)[1];
 
-    Un     := IntersectionSeriesTerm(U, Gn);
-    Vn     := IntersectionSeriesTerm(V, Gn);
+    Un     := IntersectionSeriesTerm(U, Gn).gens[1];
+    Vn     := IntersectionSeriesTerm(V, Gn).gens[1];
+    d      := Depth(gn);
+    e      := Gcd(Exponents(Un)[d], Exponents(Vn)[d]);
+    I      := gn^e;
 
 end;

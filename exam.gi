@@ -296,13 +296,20 @@ SomeNilpotentGroups := function( n )
         return G;
 
     elif n = 8 then 
-
-        et := ExpressionTrees( "a", "b", "c", "x", "y", "z" );
+        et := ExpressionTrees( 7 );
         a := et[1];; b := et[2];; c := et[3];; x := et[4];; y := et[5];; z := et[6];;
         rengel := LeftNormedComm( [a,x,x,x] );
         rengel2:= LeftNormedComm( [c,c,x,x] );
         H := rec( generators := et, relations := [rengel^2, rengel2^5, b^625, z^512, y^80] );
-        G := NilpotentQuotient( H, [x], 3);
+        G := NilpotentQuotient( H, [x], 2);
+        return G;
+
+    elif n = 9 then
+        et := ExpressionTrees( 7 );
+        a := et[1];; b := et[2];; c := et[3];; x := et[4];;
+        rengel := LeftNormedComm( [a,x,x,x] );
+        H := rec( generators := et, relations := [rengel, b^585*c^3, a^255] );
+        G := NilpotentQuotient( H, [x], 2 );
         return G;
 
     else

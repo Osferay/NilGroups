@@ -755,7 +755,7 @@ InstallGlobalFunction( "IsConjugateSubgroups", function(G, U, V)
     if U = V then
         return One(G);
     else
-        return IsConjugateSubgroupsNilGroupSeries(G, U, V);
+        return IsConjugateSubgroupsNilGroup(G, U, V);
     fi;
 
 end );    
@@ -805,7 +805,8 @@ ReducedCanonical := function(G, U, elms)
             kan,    #Canonical conjugate of the image of g by nat
             k,      #Reduced preimage of the canonical conjugate
             v,      #Conjugating element
-            N;      #Normalizer
+            N,      #Normalizer
+            i;      #Bucle variable
 
     nat := NaturalHomomorphismByNormalSubgroup(G, U );
     kan := CanonicalConjugateNilGroup( nat(G), List( elms, nat ));
@@ -879,7 +880,7 @@ InstallGlobalFunction( "CanonicalConjugateSubgroup", function(G, U)
         Error( "U has to be subgroups of G.");
     fi;
 
-    return CanonicalConjugateSubgroupNilGroupSeries(G, U); 
+    return CanonicalConjugateSubgroupNilGroup(G, U); 
 
 end );  
 
