@@ -84,17 +84,44 @@ IntersectionSubgroupsNilGroups := function(G, U, V)
 
     local   series, #Pcp series of G
             Gn,     #Last term of pcp series
-            Un,
-            Vn;
+            gn,
+            d
+            Ui,
+            Vi,
+            e,
+            I,
+            Gi,
+            proj,
+            Ii
+
 
     series := Reversed( PcpSeries(G) );
     Gn     := series[2];
     gn     := Pcp(Gn)[1];
-
-    Un     := IntersectionSeriesTerm(U, Gn).gens[1];
-    Vn     := IntersectionSeriesTerm(V, Gn).gens[1];
     d      := Depth(gn);
-    e      := Gcd(Exponents(Un)[d], Exponents(Vn)[d]);
-    I      := gn^e;
+
+    Ui     := IntersectionSeriesTerm(U, Gn).gens[1];
+    Vi     := IntersectionSeriesTerm(V, Gn).gens[1];
+    an1    := Exponents(Un)[d];
+    an2    := Exponents(Vn)[d];
+    an3    := FactorOrder(gn);
+    e      := Lcm(an1, an2);
+    I      := Subgroup(G, [ gn^e ] );
+    
+    proj   := NaturalHomomorphismByNormalSubgroup(G, Gn);
+
+    for i in [3..Length(series)] do
+        Gi     := series[i];
+        Ui     := IntersectionSeriesTerm(U, Gi).Uterm;
+        Vi     := IntersectionSeriesTerm(V, Gi).Uterm;
+        Ii     := IntersectionSubgroupsNilGroups( Image(proj), proj(Gi), proj(Gj) );
+        gIi    := Cgs(Ii);
+
+        if not gIi[1] in proj(Gi) then
+            for j in [1..Length(gIi)] do
+            PreImagesRepresentative
+        fi;
+    od;
+    
 
 end;

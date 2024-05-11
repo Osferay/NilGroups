@@ -148,7 +148,7 @@ end );
 ##                                                      m and n   ##
 ####################################################################
 
-InstallGlobalFunction(  RandomElementRangeGenerators, 
+InstallGlobalFunction( "RandomElementRangeGenerators", 
                                 function( arg )
 
     local   G,
@@ -203,7 +203,7 @@ end);
 ## if the input n is given generates a subgroup with n generators ##
 ####################################################################
 
-InstallGlobalFunction( RandomSubgroup, function( arg )
+InstallGlobalFunction( "RandomSubgroup", function( arg )
 
     local   G,
             igs,
@@ -241,5 +241,100 @@ InstallGlobalFunction( RandomSubgroup, function( arg )
     od;
 
     return Subgroup(G, gens);
+
+end );
+
+#####################################################
+### Returns true if is less or equal in the order ###
+### 0 << 1 << ... << -1 << ...                    ###
+#####################################################
+
+IntegerOrder := function(a,b)
+    if a = 0 then
+        return true;
+    elif b = 0 then
+        return false;
+    elif a > 0 then
+        if b < 0 then
+            return true;
+        else
+            return a <= b;
+        fi;
+    else
+        if b > 0 then
+            return false;
+        else
+            return b <= a;
+        fi;
+    fi;
+end;   
+
+#####################################################
+### Returns true if is less or equal in the order ###
+### extended to the exponents of g and h          ###
+#####################################################
+
+ExponentOrder := function(g,h)
+    local   e1,
+            e2,
+            i;
+
+    e1  := Exponents(g);
+    e2  := Exponents(h);
+
+    for i in [1..Length(e1)] do
+        if e1[i] <> e2[i] then
+            return IntegerOrder( e1[i], e2[i] );
+        fi;
+    od;
+    return true;
+end;
+
+#####################################################
+### Returns true if g <<= h                       ###
+#####################################################
+
+InstallGlobalFunction( "ConjugacyOrder" , function(g,h) 
+
+    local   fam,ord;
+
+    fam := FamilyObj( g );
+    ord := OrderingByLessThanFunctionNC(fam, ExponentOrder);
+
+    return IsLessThanUnder(ord, g, h);
+
+end );
+
+InstallGlobalFunction( "Shifting", function(G, U, g)
+
+    local   gen,
+            n,
+            y,
+            B,
+            d,
+            exp,
+            alp,
+            l,
+            i;
+
+    gen := Cgs(U);
+    n   := Length(gen);
+    y   := g;
+    B   := List( gen, x -> 0);
+    d   := List( gen, Depth );
+    exp := List( gen, Exponents );
+    exp := List( [1..n], x -> exp[x][d[x]]);
+    alp := List( [1..n], x -> Exponents(y)[d[x]]);
+    l   := List( [1..n], x -> IntegerOrder( alp[x], exp[x]) );
+    
+    while not ForAll( l, x -> x = true ) do
+        i    := PositionProperty(l, x -> x = false );
+        B[i] := Int( Floor( Float( alp[i] / exp[i] ) ) );
+        y    := (gen[i] ^ -B[i]) * y;
+        alp := List( [1..n], x -> Exponents(y)[d[x]]);
+        l   := List( [1..n], x -> IntegerOrder( alp[x], exp[x]) );
+    od;
+
+    return rec( y := y, B := B);
 
 end );
