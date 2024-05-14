@@ -64,7 +64,7 @@ for n in [6,7] do
 od;
 
 ############################################################################################
-##  Experiments for canonical conjugacy with small nilpotent groups                       ##
+##  Experiments for canonical conjugacy of subgroups with small nilpotent groups          ##
 ############################################################################################
 for n in [2..5] do
     ts1 := [];
@@ -72,6 +72,36 @@ for n in [2..5] do
     G := SomeNilpotentGroups(n);
 
     for i in [1..100] do
+        U := RandomSubgroup(G);
+        V := U^Random(G);
+        
+        t := Runtime();
+        IsConjugateSubgroups(G, U, V);
+        t := Runtime() - t;
+        Add(ts2, t);
+
+        t := Runtime();
+        can := IsCanonicalConjugateSubgroups(G, U, V);
+        t := Runtime() - t;
+        Add(ts1, t);
+        if IsBool(can) then Error("No conjugating."); fi;
+
+    od;
+
+    Print( Float( Sum(ts1)/Length(ts1) ), " Time consumed by new algorithm for n equal to ", n);
+    Print( Float( Sum(ts2)/Length(ts2) ), " Time consumed by old algorithm for n equal to ", n);
+od;
+
+############################################################################################
+##  Experiments for canonical conjugacy of subgroups with large nilpotent groups          ##
+############################################################################################
+
+for n in [8..9] do
+    ts1 := [];
+    ts2 := [];
+    G := SomeNilpotentGroups(n);
+
+    for i in [1..10] do
         U := RandomSubgroup(G);
         V := U^Random(G);
         

@@ -11,7 +11,7 @@ DeclareGlobalFunction( "TauGroupByVector" );
 DeclareGlobalFunction( "RandomElementRangeGenerators" );    
 DeclareGlobalFunction( "RandomSubgroup" );
 DeclareGlobalFunction( "ConjugacyOrder" );
-DeclareGlobalFunction( "Shifting" );
+DeclareGlobalFunction( "Sifting" );
 
 ### Exam.gi
 DeclareGlobalFunction( "MinimalTauGroups" );
@@ -33,6 +33,7 @@ DeclareGlobalFunction( "SameGenus" );
 DeclareGlobalFunction( "IntersectionSeriesTerm" );
 DeclareGlobalFunction( "InducedIntersectionSeries" );
 DeclareGlobalFunction( "PcpsOfInducedIntersectionSeries" );
+DeclareGlobalFunction( "IntersectionSubgroupsNilGroups" );
 
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
@@ -48,5 +49,5 @@ Reread( "/home/oscar/NilGroups/general.gi" );
 Reread( "/home/oscar/NilGroups/series.gi" );
 Reread( "/home/oscar/NilGroups/exam.gi" );
 #Reread( "/home/oscar/NilGroups/iso.gi" );
-# Reread( "/home/oscar/NilGroups/inter.gi" );
+Reread( "/home/oscar/NilGroups/inter.gi" );
 Reread( "/home/oscar/NilGroups/conjugacy.gi" );

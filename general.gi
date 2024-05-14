@@ -244,10 +244,10 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
 
 end );
 
-#####################################################
-### Returns true if is less or equal in the order ###
-### 0 << 1 << ... << -1 << ...                    ###
-#####################################################
+####################################################################
+### Returns true if is less or equal in the order                ###
+### 0 << 1 << ... << -1 << ...                                   ###
+####################################################################
 
 IntegerOrder := function(a,b)
     if a = 0 then
@@ -269,10 +269,10 @@ IntegerOrder := function(a,b)
     fi;
 end;   
 
-#####################################################
-### Returns true if is less or equal in the order ###
-### extended to the exponents of g and h          ###
-#####################################################
+####################################################################
+### Returns true if is less or equal in the order                ###
+### extended to the exponents of g and h                         ###
+####################################################################
 
 ExponentOrder := function(g,h)
     local   e1,
@@ -290,9 +290,9 @@ ExponentOrder := function(g,h)
     return true;
 end;
 
-#####################################################
-### Returns true if g <<= h                       ###
-#####################################################
+####################################################################
+### Returns true if g <<= h                                      ###
+####################################################################
 
 InstallGlobalFunction( "ConjugacyOrder" , function(g,h) 
 
@@ -305,7 +305,11 @@ InstallGlobalFunction( "ConjugacyOrder" , function(g,h)
 
 end );
 
-InstallGlobalFunction( "Shifting", function(G, U, g)
+####################################################################
+### Returns true if g <<= h                                      ###
+####################################################################
+
+InstallGlobalFunction( "Sifting", function(G, U, g)
 
     local   gen,
             n,
