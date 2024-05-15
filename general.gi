@@ -147,7 +147,7 @@ end );
 ## Global function to calculate the a reduced element in a basis     ##
 #######################################################################
 
-ReducePcpElement := function( elm, basis )
+InstallGlobalFunction( "ReducePcpElement", function( elm, basis )
 
     local   exp,    #Exponents of elm
             l,      #Leading exponents of the elements in the basis
@@ -176,7 +176,7 @@ ReducePcpElement := function( elm, basis )
 
     return v;
 
-end;
+end );
 
 ####################################################################
 ## Generates a random element of G using only generators between  ##
@@ -231,7 +231,7 @@ InstallGlobalFunction( "RandomElementRangeGenerators",
 
     return MappedVector( g, pcp );
 
-end);
+end );
 
 ####################################################################
 ## Generates a random subgroup of G                               ##
@@ -283,7 +283,9 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
         Add( gens, g );
     od;
 
-    return SubgroupByIgs(G, gens);
+    U := SubgroupByIgs(G, gens);
+
+    return rec( U := SubgroupByIgs(G, Cgs(U)), gens := gens);
 
 end );
 

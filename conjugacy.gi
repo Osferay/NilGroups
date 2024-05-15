@@ -690,8 +690,8 @@ IsConjugateSubgroupsNilGroup := function(G, U, V)
             genV;   #Generators of V
 
     #Catch trivial case
-    genU := Reversed( Igs(U) );
-    genV := Reversed( Igs(V) );
+    genU := Reversed( Cgs(U) );
+    genV := Reversed( Cgs(V) );
     
     if Length(genU) <> Length(genV) then
         return false;
@@ -729,7 +729,7 @@ IsConjugateSubgroupsNilGroup := function(G, U, V)
             x   := x * xi;
             H   := Hi^ xi;
             Ui  := Ui^ xi;
-            genU:= Reversed( Igs(Ui) );
+            genU:= Reversed( Cgs(Ui) );
             K   := Ki;
 
             #Update the normalizer
@@ -810,7 +810,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
     gU := Reversed( Cgs(U) );
     N  := G; 
     x  := One(G);
-    Ui := Subgroup( U, [ ]);
+    Ui := SubgroupByIgs( U, [ ]);
     gK := [];
 
     for i in [1..Length(gU)] do
@@ -828,7 +828,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
 
     od;
     
-    K    := Subgroup( G, gK );
+    K    := SubgroupByIgs( G, gK );
 
     return rec( kano := K, conj := x, norm := N);
 
