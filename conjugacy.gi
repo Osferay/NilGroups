@@ -761,41 +761,6 @@ InstallGlobalFunction( "IsConjugateSubgroups", function(G, U, V)
 end );    
 
 #######################################################################
-## Local function to calculate the reduced preimage in the qoutient  ##
-#######################################################################
-
-ReducedPreimage := function( elm, basis )
-
-    local   exp,    #Exponents of elm
-            l,      #Leading exponents of the elements in the basis
-            d,      #Depth of the elements in the basis
-            v,      #Reduced preimage
-            i,      #Bucle variable
-            r,      #Residuo
-            x;      #Expoenent of the element in the basis
-
-    v     := elm ;
-    basis := Reversed(basis);
-    exp   := Exponents( v );
-    l     := List( basis, LeadingExponent );
-    d     := List( basis, Depth);
-    
-
-    for i in [1..Length(d)] do
-
-        if exp[ d[i] ]<0 or exp[ d[i] ]>(l[i]-1) then
-            r   :=  exp[ d[i] ] mod l[i];
-            x   := (exp[ d[i] ] - r)/l[i];
-            v   := v * basis[i]^-x;
-            exp := Exponents( v );
-        fi;
-    od;
-
-    return v;
-
-end;
-
-#######################################################################
 ## Local function to calculate the reduced canonical form            ##
 #######################################################################
 

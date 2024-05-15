@@ -2,9 +2,9 @@
 
 Functions to work with infinite nilpotent groups and torsion-free nilpotent groups, Tau Groups in short.
 To install al the functions save the files inside the GAP directory/pkg/NilGroups and then run in GAP.
-'''
+```
 Read( "*Gap Directory*/pkg/NilGroups/read.g");
-'''
+```
 
 # Contents
 

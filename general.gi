@@ -143,6 +143,41 @@ InstallGlobalFunction( TauGroupByVector, function(v,h)
 
 end );
 
+#######################################################################
+## Global function to calculate the a reduced element in a basis     ##
+#######################################################################
+
+ReducePcpElement := function( elm, basis )
+
+    local   exp,    #Exponents of elm
+            l,      #Leading exponents of the elements in the basis
+            d,      #Depth of the elements in the basis
+            v,      #Reduced preimage
+            i,      #Bucle variable
+            r,      #Residuo
+            x;      #Expoenent of the element in the basis
+
+    v     := elm ;
+    basis := Reversed(basis);
+    exp   := Exponents( v );
+    l     := List( basis, LeadingExponent );
+    d     := List( basis, Depth);
+    
+
+    for i in [1..Length(d)] do
+
+        if exp[ d[i] ]<0 or exp[ d[i] ]>(l[i]-1) then
+            r   :=  exp[ d[i] ] mod l[i];
+            x   := (exp[ d[i] ] - r)/l[i];
+            v   := v * basis[i]^-x;
+            exp := Exponents( v );
+        fi;
+    od;
+
+    return v;
+
+end;
+
 ####################################################################
 ## Generates a random element of G using only generators between  ##
 ##                                                      m and n   ##
@@ -211,6 +246,7 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
             gens,
             nums,
             r,
+            g,
             i;
 
     G    := arg[1];
@@ -236,11 +272,18 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
 
     Sort(nums);
 
-    for i in [1..n] do
-        Add( gens, RandomElementRangeGenerators(G, nums[i]) );
+    g := RandomElementRangeGenerators(G, nums[1]);
+    g := NormedPcpElement(g);
+    Add( gens, g );
+    
+    for i in [2..n] do
+        g := RandomElementRangeGenerators(G, nums[i]);
+        g := NormedPcpElement( g );
+        g := ReducePcpElement( g, gens);
+        Add( gens, g );
     od;
 
-    return Subgroup(G, gens);
+    return SubgroupByIgs(G, gens);
 
 end );
 
