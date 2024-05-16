@@ -417,7 +417,7 @@ end;
 ## Global function to calculate the canonical conjugate of elms in G ##
 #######################################################################
 
-InstallGlobalFunction( "CanonicalConjugateNilGroup", function(G, elms)
+InstallGlobalFunction( "CanonicalConjugateElements", function(G, elms)
 
     local   pcps;
 
@@ -583,7 +583,7 @@ end;
 ## using canonical conjugate elements                               ##
 ######################################################################
 
-InstallGlobalFunction( "IsCanonicalConjugateNilGroup", function(G, elms)
+InstallGlobalFunction( "IsCanonicalConjugateElements", function(G, elms)
 
     local   pcps,
             can;
@@ -774,19 +774,54 @@ ReducedCanonical := function(G, U, elms)
             i;      #Bucle variable
 
     nat := NaturalHomomorphismByNormalSubgroup(G, U );
-    kan := CanonicalConjugateNilGroup( nat(G), List( elms, nat ));
+    kan := CanonicalConjugateElements( Image(nat), List( elms, nat ) );
     k   := [];
     v   := [];
 
     for i in [1..Length(elms)] do
         k[i]:= PreImagesRepresentative(nat, kan.kano[i]);
         v[i]:= PreImagesRepresentative(nat, kan.conj[i]);
-        k[i]:= ReducedPreimage(k[i] , Cgs(U));
+        k[i]:= ReducePcpElement(k[i] , Cgs(U));
     od;
 
     N   := PreImage( nat, kan.cent[1] );
 
     return rec( kan := k, v := v, N := N );
+
+end;
+
+#######################################################################
+## Local function to check if two elements are conjugate in the      ##
+## quotient                                                          ##
+#######################################################################
+
+IsCanonicalConjugateQuotient := function(G, U, elms)
+
+    local   nat,    #Natural homomrphism from G to G/U
+            kan,    #Canonical conjugate of the image of g by nat
+            k,      #Reduced preimage of the canonical conjugate
+            v,      #Conjugating element
+            N,      #Normalizer
+            i;      #Bucle variable
+
+    nat := NaturalHomomorphismByNormalSubgroup(G, U );
+    kan := IsCanonicalConjugateElements( Image(nat), List( elms, nat ));
+
+    if IsBool(kan) then
+        return false;
+    else;
+        v   := [];
+
+        for i in [1..Length(elms)] do
+            v[i] := PreImagesRepresentative(nat, kan.conj[i]);
+        od;
+        
+        k := PreImagesRepresentative(nat, kan.kano);
+        k := ReducePcpElement(k , Cgs(U));
+        N := PreImage( nat, kan.cent );
+
+        return rec( kan := k, v := v, N := N );
+    fi;
 
 end;
 
@@ -820,6 +855,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
 
         x   := x*kan.v[1];
         Ui  := SubgroupByIgs(U, gU{[1..i]} );
+        SetCgs(Ui, gU{[1..i]} );
         Ui   := Ui^x;
         
         N   := kan.N;
@@ -829,6 +865,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
     od;
     
     K    := SubgroupByIgs( G, gK );
+    SetCgs(K, gK);
 
     return rec( kano := K, conj := x, norm := N);
 
@@ -886,25 +923,30 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
         u := NormedPcpElement( gU[i]^x );
         v := NormedPcpElement( gV[i]^y );
 
-        kU := ReducedCanonical(N, Ui, [u,v]);
+        kU := IsCanonicalConjugateQuotient(N, Ui, [u,v]);
 
-        if kU.kan[1] = kU.kan[2] then
+        if IsBool(kU) then
+        
+            return false;
+        
+        else 
             x   := x*kU.v[1];
             Ui  := SubgroupByIgs(U, gU{[1..i]} );
+            SetCgs(Ui, gU{[1..i]});
             Ui  := Ui^x;
 
             y   := y*kU.v[2];
         
             N   := kU.N;
 
-            Add( gK, kU.kan[1] );
-        else
-            return false;
+            Add( gK, kU.kan );
+
         fi;
 
     od;
     
-    K    := Subgroup( G, gK );
+    K    := SubgroupByIgs( G, gK );
+    SetCgs(K, gK);
 
     return rec( kano := K, conj := [x,y], norm := N);
 
@@ -974,7 +1016,7 @@ IsMultipleConjugateNilGroup := function(G, list1, list2)
         Ui := CentralizerNilGroup( G, list2{[1..i]});
         gi := list1[i]^x;
         hi := list2[i];
-        xi := IsCanonicalConjugateNilGroup(Ui, [gi, hi]);
+        xi := IsCanonicalConjugateElements(Ui, [gi, hi]);
         if IsBool(xi) then
             return false;
         else

@@ -241,31 +241,32 @@ end );
 InstallGlobalFunction( "RandomSubgroup", function( arg )
 
     local   G,
-            igs,
+            cgs,
             n,
             gens,
             nums,
             r,
             g,
-            i;
+            i,
+            U;
 
     G    := arg[1];
-    igs  := Igs(G);
+    cgs  := Cgs(G);
     gens := [];
     nums := [];
 
     if Length(arg) > 1 then
         n := arg[2];
-        if n > Length( igs ) then Error("The number n is greater than the number of generators of G."); fi;
+        if n > Length( cgs ) then Error("The number n is greater than the number of generators of G."); fi;
     else
-        n := Random( [1..Length( igs )] );
+        n := Random( [1..Length( cgs )] );
     fi;
 
 
     for i in [1..n] do
-        r := Random([1..Length(igs)]);
+        r := Random([1..Length(cgs)]);
         while r in nums do
-            r := Random([1..Length(igs)]);
+            r := Random([1..Length(cgs)]);
         od;
         Add( nums, r );
     od;
@@ -278,14 +279,17 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
     
     for i in [2..n] do
         g := RandomElementRangeGenerators(G, nums[i]);
-        g := NormedPcpElement( g );
-        g := ReducePcpElement( g, gens);
+        while( g = One(G) ) do 
+            g := RandomElementRangeGenerators(G, nums[i]);
+            g := NormedPcpElement( g );
+            g := ReducePcpElement( g, gens);
+        od;
         Add( gens, g );
     od;
 
     U := SubgroupByIgs(G, gens);
-
-    return rec( U := SubgroupByIgs(G, Cgs(U)), gens := gens);
+    SetCgs(U, Cgs( Igs( U ) ) );
+    return U;
 
 end );
 

@@ -8,6 +8,7 @@ DeclareGlobalFunction( "Pref" );
 DeclareGlobalFunction( "TauVector" );
 DeclareGlobalFunction( "MatrixRelationsByVector" );
 DeclareGlobalFunction( "TauGroupByVector" );
+DeclareGlobalFunction( "ReducePcpElement" );
 DeclareGlobalFunction( "RandomElementRangeGenerators" );    
 DeclareGlobalFunction( "RandomSubgroup" );
 DeclareGlobalFunction( "ConjugacyOrder" );
@@ -38,8 +39,8 @@ DeclareGlobalFunction( "IntersectionSubgroupsNilGroups" );
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
-DeclareGlobalFunction( "CanonicalConjugateNilGroup" );
-DeclareGlobalFunction( "IsCanonicalConjugateNilGroup" );
+DeclareGlobalFunction( "CanonicalConjugateElements" );
+DeclareGlobalFunction( "IsCanonicalConjugateElements" );
 DeclareGlobalFunction( "NormalizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateSubgroups" );
 DeclareGlobalFunction( "CanonicalConjugateSubgroup");
