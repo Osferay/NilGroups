@@ -845,7 +845,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
     gU := Reversed( Cgs(U) );
     N  := G; 
     x  := One(G);
-    Ui := SubgroupByIgs( U, [ ]);
+    Ui := Subgroup( U, [ ]);
     gK := [];
 
     for i in [1..Length(gU)] do
@@ -854,7 +854,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
         kan := ReducedCanonical(N, Ui, u);
 
         x   := x*kan.v[1];
-        Ui  := SubgroupByIgs(U, gU{[1..i]} );
+        Ui  := Subgroup(U, gU{[1..i]} );
         SetCgs(Ui, gU{[1..i]} );
         Ui   := Ui^x;
         
@@ -864,8 +864,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
 
     od;
     
-    K    := SubgroupByIgs( G, gK );
-    SetCgs(K, gK);
+    K    := Subgroup( G, gK );
 
     return rec( kano := K, conj := x, norm := N);
 
@@ -931,7 +930,7 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
         
         else 
             x   := x*kU.v[1];
-            Ui  := SubgroupByIgs(U, gU{[1..i]} );
+            Ui  := Subgroup(U, gU{[1..i]} );
             SetCgs(Ui, gU{[1..i]});
             Ui  := Ui^x;
 
@@ -945,8 +944,7 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
 
     od;
     
-    K    := SubgroupByIgs( G, gK );
-    SetCgs(K, gK);
+    K    := Subgroup( G, gK );
 
     return rec( kano := K, conj := [x,y], norm := N);
 

@@ -1,6 +1,13 @@
+dir      := DirectoryCurrent();
+filename := Filename( dir, "GapLog.txt");
+PrintTo( filename, "Starting to log gap events\n");
+
 ############################################################################################
 ##  Experiments for canonical conjugacy with small nilpotent groups                       ##
 ############################################################################################
+
+AppendTo( filename, "Results for the first experiment\n");
+Print("Starting experiment one \n");
 for n in [2..5] do
     ts1 := [];
     ts2 := [];
@@ -17,7 +24,7 @@ for n in [2..5] do
 
         elms := [g,h];
         t := Runtime();
-        can := IsCanonicalConjugateNilGroup(G, elms);
+        can := IsCanonicalConjugateElements(G, elms);
         t := Runtime() - t;
         Add(ts1, t);
         for k in [1..Length(elms)] do
@@ -26,14 +33,17 @@ for n in [2..5] do
 
     od;
 
-    Print( Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n);
-    Print( Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n);
+    AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
+    AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
 od;
+Print("Finished experiment one \n");
 
 ############################################################################################
 ##  Experiments for canonical conjugacy with large nilpotent groups                       ##
 ############################################################################################
 
+AppendTo( filename, "Results for the first experiment\n");
+Print("Starting experiment two \n");
 for n in [6,7] do
     ts1 := [];
     ts2 := [];
@@ -50,7 +60,7 @@ for n in [6,7] do
 
         elms := [g,h];
         t := Runtime();
-        can := IsCanonicalConjugateNilGroup(G, elms);
+        can := IsCanonicalConjugateElements(G, elms);
         t := Runtime() - t;
         Add(ts1, t);
         for k in [1..Length(elms)] do
@@ -59,20 +69,24 @@ for n in [6,7] do
 
     od;
 
-    Print( Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n);
-    Print( Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n);
+    AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
+    AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
 od;
+Print("Finished experiment two \n");
 
 ############################################################################################
 ##  Experiments for canonical conjugacy of subgroups with small nilpotent groups          ##
 ############################################################################################
+
+AppendTo( filename, "Results for the first experiment\n");
+Print("Starting experiment three \n");
 for n in [2..5] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
 
     for i in [1..100] do
-        U := RandomSubgroup(G);
+        U := Subgroup( G, [Random(G), Random(G)]);
         V := U^Random(G);
         
         t := Runtime();
@@ -88,21 +102,24 @@ for n in [2..5] do
 
     od;
 
-    Print( Float( Sum(ts1)/Length(ts1) ), " Time consumed by new algorithm for n equal to ", n);
-    Print( Float( Sum(ts2)/Length(ts2) ), " Time consumed by old algorithm for n equal to ", n);
+    AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
+    AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
 od;
+Print("Finished experiment three \n");
 
 ############################################################################################
 ##  Experiments for canonical conjugacy of subgroups with large nilpotent groups          ##
 ############################################################################################
 
+AppendTo( filename, "Results for the first experiment\n");
+Print("Starting experiment four \n");
 for n in [8..9] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
 
     for i in [1..10] do
-        U := RandomSubgroup(G);
+        U := Subgroup(G, [RandomElementRangeGenerators(G,10), RandomElementRangeGenerators(G, 10+n)]);
         V := U^Random(G);
         
         t := Runtime();
@@ -118,6 +135,9 @@ for n in [8..9] do
 
     od;
 
-    Print( Float( Sum(ts1)/Length(ts1) ), " Time consumed by new algorithm for n equal to ", n);
-    Print( Float( Sum(ts2)/Length(ts2) ), " Time consumed by old algorithm for n equal to ", n);
+    AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
+    AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
 od;
+Print("Finished experiment four \n");
+Unbind(dir);
+Unbind(filename);

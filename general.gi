@@ -221,8 +221,11 @@ InstallGlobalFunction( "RandomElementRangeGenerators",
         if i in [n..m] then
             if rel[i] = 0 then
                 g[i] := Random( Integers );
+                while g[i] = 0 do
+                    g[i] := Random( Integers );
+                od;
             else
-                g[i] := Random( 0, rel[i]-1 );
+                g[i] := Random( 1, rel[i]-1 );
             fi;
         else
             g[i] := 0;
@@ -272,23 +275,13 @@ InstallGlobalFunction( "RandomSubgroup", function( arg )
     od;
 
     Sort(nums);
-
-    g := RandomElementRangeGenerators(G, nums[1]);
-    g := NormedPcpElement(g);
-    Add( gens, g );
     
-    for i in [2..n] do
+    for i in [1..n] do
         g := RandomElementRangeGenerators(G, nums[i]);
-        while( g = One(G) ) do 
-            g := RandomElementRangeGenerators(G, nums[i]);
-            g := NormedPcpElement( g );
-            g := ReducePcpElement( g, gens);
-        od;
         Add( gens, g );
     od;
 
-    U := SubgroupByIgs(G, gens);
-    SetCgs(U, Cgs( Igs( U ) ) );
+    U := Subgroup(G, gens);
     return U;
 
 end );
