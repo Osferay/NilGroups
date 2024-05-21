@@ -96,7 +96,7 @@ IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
     gU := Cgs(U)[1];
     #Trivial case
     if U = V then
-        return rec( gens := [gU], I := U);
+        return [gU];
     fi;
 
     #Cyclic case
@@ -104,32 +104,32 @@ IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
     d1 := Depth( gU );
     d2 := Depth( gV );
     if d1 <> d2 then
-        return rec( gens := [], I := Subgroup(G, []) );
+        return [ One(G) ];
     else
         e := Lcm( Exponents( gU )[d1], Exponents( gV )[d2] );
+        gU := gU^e;
+        gV := gV^e;
 
-        if gU^e in V and gV^e in U then
-            gen := Cgs(G)[d1]^e;
-            return rec( gens := [gen], I := Subgroup( G, [ gen ] ) );
-
+        if gU in V and gV in U then
+            if gU = gV then
+                return [ gU ];
+            else
+                return [ Cgs(G)[d1]^e ];
+            fi;
         else
-            return rec( gens := [], I := Subgroup(G, []) );
+            return [ One(G) ];
         fi;
     fi;
 
 end;
 
 #######################################################################
-## Global function to calculate the intersection of two subgroups    ##
+## Local function to calculate the intersection of two subgroups     ##
 #######################################################################
 
-InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
+IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d)
 
-    local   ser,    #Pcp series of G
-            G2,     #Second term of ser
-            Gn,     #Last term of ser
-            gn,     #Generator of gn
-            d,      #Depth of gn
+    local   G2,     #Second term of ser
             U2,     #Intersection U and G2
             V2,     #Intersection V and G2
             I,      #Intersection U2 and V2
@@ -142,7 +142,7 @@ InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
             an,     #Additional values for A
             H,      #Values hu for all generators
             A,      #Exponents of gn to equalize hu and hv
-            j,      #Bucle variable
+            i,j,    #Bucle variable
             b,      #Preimage of the generator of pI
             hu,     #Sifting of b in U
             hv,     #Sifting of b in V
@@ -153,13 +153,13 @@ InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
 
     #Trivial cases
     if U = V then
-        return rec( gens := Cgs(U), I := U);
+        return Cgs(U);
 
     elif Size(U) = 1 then
-        return rec( gens := [ One(G) ], I := U);
+        return [ One(G) ];
 
     elif Size(V) = 1 then
-        return rec( gens := [ One(G) ], I := V);
+        return [ One(G) ];
 
     fi;
 
@@ -169,20 +169,24 @@ InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
     fi;
 
     #General Case
-
-    ser := PcpSeries(G);
-    G2  := ser[2];
-    Gn  := ser[Length(ser)-1];
-    gn  := Pcp(Gn)[1];
-    d   := Depth(gn);
+    
+    i := 2;
+    G2 := ser[i];
     U2  := IntersectionSeriesTerm(U, G2).cross;
     V2  := IntersectionSeriesTerm(V, G2).cross;
-    I   := IntersectionSubgroupsNilGroups(G, U2, V2);
-    gens:= ShallowCopy(I.gens);
-    
+
+    while U2 = U and V2 = V do
+        i  := i + 1;
+        G2 := ser[i];
+        U2 := IntersectionSeriesTerm(U, G2).cross;
+        V2 := IntersectionSeriesTerm(V, G2).cross;
+    od;
+
+    I   := IntersectionSubgroupsNilGroupsSeries(G, U2, V2, ser, Gn, gn, d);
+    gens:= ShallowCopy(I);
     p   := NaturalHomomorphismByNormalSubgroup(G, Gn);
     pI  := IntersectionSubgroupsNilGroups( Image(p), p(U), p(V) );
-    B   := pI.gens;
+    B   := pI;
     
     if B[1] in p(G2) then
         return I;
@@ -212,32 +216,54 @@ InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
         d1 := Gcd( A );
         
         if d2 = 0 and d1 <> 0 then
-            return I;
+            
 
-        elif d2 = 0 and d1 <> 0 then
-            x := Sifting(G, I.I, H[1]).y;
+        elif d1 = 0 then
+            I := Subgroup(G, I);
+            x := Sifting(G, I, H[1]).y;
             Add( gens, x, 1);
-            return rec( gens := gens, I := Subgroup(G, gens));
 
         else
 
             b := d2/d1;
-            B := R*(-A[1]/d1);
+            B := R{[1..Length(R)-2]}*(-A[1]/d1);
             B[Length(B)] := B[Length(B)] * an[1];
             Add(B, b, 1);
             Add(H, gn);
             x := MappedVector(B, H);
 
             if x in G2 then 
-                return I;
 
             else
-                x := Sifting(G, I.I, x).y;
+                I := Subgroup(G, I);
+                x := Sifting(G, I, x).y;
                 Add(gens, x, 1);
-                return rec( gens := gens, I := Subgroup(G, gens));
             fi;
         fi;
     fi;
+
+    return gens;
     
+
+end;
+
+#######################################################################
+## Global function to calculate the intersection of two subgroups    ##
+#######################################################################
+
+InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V) 
+
+    local   ser,    #Pcp series of G
+            Gn,     #Last term of ser
+            gn,     #Generator of gn
+            d;      #Depth of gn
+    
+    ser := PcpSeries(G);
+    Gn  := ser[Length(ser)-1];
+    gn  := Pcp(Gn)[1];
+    d   := Depth(gn);
+
+    return IntersectionSubgroupsNilGroupsSeries(G, U, V, ser, Gn, gn, d);
+
 
 end );
