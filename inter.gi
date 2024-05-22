@@ -86,13 +86,12 @@ end );
 
 IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
 
-    local   gU,
-            gV,
-            d1,
-            d2,
-            e,
-            gen;
-    
+    local   gU,     #Generator of U
+            gV,     #Generator of V
+            d1,     #Depth of the generator of U
+            d2,     #Depth of the generator of V
+            e;      #Lcm of the leading exponent of gU and gV
+            
     gU := Cgs(U)[1];
     #Trivial case
     if U = V then
@@ -104,7 +103,7 @@ IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
     d1 := Depth( gU );
     d2 := Depth( gV );
     if d1 <> d2 then
-        return [ One(G) ];
+        return [ ];
     else
         e := Lcm( Exponents( gU )[d1], Exponents( gV )[d2] );
         gU := gU^e;
@@ -117,7 +116,7 @@ IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
                 return [ Cgs(G)[d1]^e ];
             fi;
         else
-            return [ One(G) ];
+            return [ ];
         fi;
     fi;
 
@@ -127,14 +126,12 @@ end;
 ## Local function to calculate the intersection of two subgroups     ##
 #######################################################################
 
-IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d)
+IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
 
     local   G2,     #Second term of ser
             U2,     #Intersection U and G2
             V2,     #Intersection V and G2
             I,      #Intersection U2 and V2
-            gens,   #Generators of I
-            p,      #Projection map
             pI,     #Intersection of p(U) and p(V)
             B,      #Generators of pI
             Un,     #Intersection U and Gn
@@ -142,7 +139,7 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d)
             an,     #Additional values for A
             H,      #Values hu for all generators
             A,      #Exponents of gn to equalize hu and hv
-            i,j,    #Bucle variable
+            i,      #Bucle variable
             b,      #Preimage of the generator of pI
             hu,     #Sifting of b in U
             hv,     #Sifting of b in V
@@ -156,93 +153,89 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d)
         return Cgs(U);
 
     elif Size(U) = 1 then
-        return [ One(G) ];
+        return [ ];
 
     elif Size(V) = 1 then
-        return [ One(G) ];
-
-    fi;
+        return [ ];
 
     #Cyclic case
-    if Length( Cgs(U) ) = 1 and Length( Cgs(V) ) = 1 then
+    elif Length( Cgs(U) ) = 1 and Length( Cgs(V) ) = 1 then
         return IntersectionCyclicSubgroupsNilGroups(G, U, V);
-    fi;
-
     #General Case
-    
-    i := 2;
-    G2 := ser[i];
-    U2  := IntersectionSeriesTerm(U, G2).cross;
-    V2  := IntersectionSeriesTerm(V, G2).cross;
-
-    while U2 = U and V2 = V do
-        i  := i + 1;
-        G2 := ser[i];
-        U2 := IntersectionSeriesTerm(U, G2).cross;
-        V2 := IntersectionSeriesTerm(V, G2).cross;
-    od;
-
-    I   := IntersectionSubgroupsNilGroupsSeries(G, U2, V2, ser, Gn, gn, d);
-    gens:= ShallowCopy(I);
-    p   := NaturalHomomorphismByNormalSubgroup(G, Gn);
-    pI  := IntersectionSubgroupsNilGroups( Image(p), p(U), p(V) );
-    B   := pI;
-    
-    if B[1] in p(G2) then
-        return I;
-    
     else
+        i := 2;
+        G2 := ser[i];
+        U2  := IntersectionSeriesTerm(U, G2).cross;
+        V2  := IntersectionSeriesTerm(V, G2).cross;
 
-        Un := IntersectionSeriesTerm(U, Gn).gens[1];
-        Vn := IntersectionSeriesTerm(V, Gn).gens[1];
-        an := [ Exponents(Un)[d], Exponents(Vn)[d], FactorOrder(gn)];
+        while U2 = U and V2 = V do
+            i  := i + 1;
+            G2 := ser[i];
+            U2 := IntersectionSeriesTerm(U, G2).cross;
+            V2 := IntersectionSeriesTerm(V, G2).cross;
+        od;   
 
-        H := [];
-        A := [];
-
-        for j in [1..Length(B)] do
-
-            b    := PreImagesRepresentative( p, B[j]);
-            hu   := b * (Sifting(G, U, b).y)^-1;
-            H[j] := hu;
-            hv   := b * (Sifting(G, V, b).y)^-1;
-            A[j] := Last(Exponents(hu))-Last(Exponents(hv));
-            
-        od;
+        I   := IntersectionSubgroupsNilGroupsSeries(G, U2, V2, ser, Gn, gn, d, p);
+        I   := ShallowCopy(I);
         
-        Append( A, an );
-        R  := GcdRepresentation( A{[2..Length(A)]} );
-        d2 := A{[2..Length(A)]} * R;
-        d1 := Gcd( A );
+        pI  := IntersectionSubgroupsNilGroups( Image(p), p(U), p(V) );
         
-        if d2 = 0 and d1 <> 0 then
-            
-
-        elif d1 = 0 then
-            I := Subgroup(G, I);
-            x := Sifting(G, I, H[1]).y;
-            Add( gens, x, 1);
-
+        if pI[1] in p(G2) then
+            return I;
+        
         else
 
-            b := d2/d1;
-            B := R{[1..Length(R)-2]}*(-A[1]/d1);
-            B[Length(B)] := B[Length(B)] * an[1];
-            Add(B, b, 1);
-            Add(H, gn);
-            x := MappedVector(B, H);
+            Un := IntersectionSeriesTerm(U, Gn).gens[1];
+            Vn := IntersectionSeriesTerm(V, Gn).gens[1];
+            an := [ Exponents(Un)[d], Exponents(Vn)[d], FactorOrder(gn)];
 
-            if x in G2 then 
+            H := [];
+            A := [];
+
+            for i in [1..Length(pI)] do
+
+                b    := PreImagesRepresentative( p, pI[i]);
+                hu   := b * (Sifting(G, U, b).y)^-1;
+                H[i] := hu;
+                hv   := b * (Sifting(G, V, b).y)^-1;
+                A[i] := Last(Exponents(hu))-Last(Exponents(hv));
+                
+            od;
+            
+            Append( A, an );
+            R  := GcdRepresentation( A{[2..Length(A)]} );
+            d2 := A{[2..Length(A)]} * R;
+            d1 := Gcd( A );
+            
+            if d2 = 0 and d1 <> 0 then
+                
+
+            elif d1 = 0 then
+                x := SiftingWithGens(G, I, H[1]).y;
+                Add( I, x, 1);
 
             else
-                I := Subgroup(G, I);
-                x := Sifting(G, I, x).y;
-                Add(gens, x, 1);
+
+                b := d2/d1;
+                B := R{[1..Length(R)-2]}*(-A[1]/d1);
+                B[Length(B)] := B[Length(B)] * an[1];
+                Add(B, b, 1);
+                Add(H, gn);
+                x := MappedVector(B, H);
+
+                if x in G2 then 
+                    
+                else
+                    x := SiftingWithGens(G, I, x).y;
+                    Add(I, x, 1);
+                fi;
             fi;
         fi;
     fi;
 
-    return gens;
+    I := Filtered( I, x -> x <> One(G) );
+
+    return I;
     
 
 end;
@@ -256,14 +249,15 @@ InstallGlobalFunction( "IntersectionSubgroupsNilGroups", function(G, U, V)
     local   ser,    #Pcp series of G
             Gn,     #Last term of ser
             gn,     #Generator of gn
-            d;      #Depth of gn
+            d,      #Depth of gn
+            p;      #Projection map
     
     ser := PcpSeries(G);
     Gn  := ser[Length(ser)-1];
     gn  := Pcp(Gn)[1];
     d   := Depth(gn);
+    p   := NaturalHomomorphismByNormalSubgroup(G, Gn);
 
-    return IntersectionSubgroupsNilGroupsSeries(G, U, V, ser, Gn, gn, d);
-
+    return IntersectionSubgroupsNilGroupsSeries(G, U, V, ser, Gn, gn, d, p);
 
 end );
