@@ -16,8 +16,8 @@ end );
 
 InstallGlobalFunction( Pref, function(x,y)
 
-    local   s,
-            pref;
+    local   s,      #Minimum x mod y, -x mod y
+            pref;   #Value to return
 
     s := Minimum( x mod y, -x mod y);
     pref :=[];
@@ -40,10 +40,10 @@ end );
 
 InstallGlobalFunction( TauVector, function(G)
 
-    local   pcp,
+    local   pcp,    #pcp of G
             i,j,k,  #Bucle variables
-            v, 
-            h;       #Hirsch number of G.
+            v,      #Tau vector 
+            h;      #Hirsch number of G.
 
     if not (IsPcpGroup(G) and IsTauGroup(G)) then
         Error( "This method is non compatible with the group" );
@@ -186,13 +186,13 @@ end );
 InstallGlobalFunction( "RandomElementRangeGenerators", 
                                 function( arg )
 
-    local   G,
-            m,
-            n,
-            pcp,
-            rel,
-            i,
-            g;
+    local   G,      #Group given
+            n,      #Second argument given
+            m,      #Third argument given
+            pcp,    #Pcp of g
+            rel,    #Relative orders of G
+            i,      #Bucle variable
+            g;      #Element to return using the range of elements between n and m
 
     G := arg[1];
     n := arg[2];
@@ -243,15 +243,15 @@ end );
 
 InstallGlobalFunction( "RandomSubgroup", function( arg )
 
-    local   G,
-            cgs,
-            n,
-            gens,
-            nums,
-            r,
-            g,
-            i,
-            U;
+    local   G,      #Group given
+            cgs,    #Canonical generators of G
+            n,      #Second argument
+            gens,   #List of generators
+            nums,   #Numbers to generate the generators
+            r,      #Random integer
+            g,      #Random element in G
+            i,      #Bucle variable
+            U;      #Subgroup to return
 
     G    := arg[1];
     cgs  := Cgs(G);
@@ -312,14 +312,39 @@ IntegerOrder := function(a,b)
 end;   
 
 ####################################################################
+### Returns true if is less in the order                         ###
+### 0 << 1 << ... << -1 << ...                                   ###
+####################################################################
+
+IntegerOrderStrict := function(a,b)
+    if a = 0 then
+        return true;
+    elif b = 0 then
+        return false;
+    elif a > 0 then
+        if b < 0 then
+            return true;
+        else
+            return a < b;
+        fi;
+    else
+        if b > 0 then
+            return false;
+        else
+            return b < a;
+        fi;
+    fi;
+end; 
+
+####################################################################
 ### Returns true if is less or equal in the order                ###
 ### extended to the exponents of g and h                         ###
 ####################################################################
 
 ExponentOrder := function(g,h)
-    local   e1,
-            e2,
-            i;
+    local   e1, #Exponents of g
+            e2, #Exponents of h
+            i;  #Bucle variable
 
     e1  := Exponents(g);
     e2  := Exponents(h);
@@ -348,22 +373,20 @@ InstallGlobalFunction( "ConjugacyOrder" , function(g,h)
 end );
 
 ####################################################################
-### Returns true if g <<= h                                      ###
+### Sifting algorithm using a sequence                           ###
 ####################################################################
 
-InstallGlobalFunction( "Sifting", function(G, U, g)
+SiftingWithGens := function(G, gen, g)
 
-    local   gen,
-            n,
-            y,
-            B,
-            d,
-            exp,
-            alp,
-            l,
-            i;
+    local   n,      #Number of generators
+            y,      #Element to return such that gy^-1 is in the subgroup
+            B,      #Exponent vector of xy^-1
+            d,      #List of depths of the generators
+            exp,    #Expoenents of the depths of the generators
+            alp,    #Exponents of the element in each depth
+            l,      #List of conditions
+            i;      #Bucle variable
 
-    gen := Cgs(U);
     n   := Length(gen);
     y   := g;
     B   := List( gen, x -> 0);
@@ -371,16 +394,26 @@ InstallGlobalFunction( "Sifting", function(G, U, g)
     exp := List( gen, Exponents );
     exp := List( [1..n], x -> exp[x][d[x]]);
     alp := List( [1..n], x -> Exponents(y)[d[x]]);
-    l   := List( [1..n], x -> IntegerOrder( alp[x], exp[x]) );
-    
+    l   := List( [1..n], x -> IntegerOrderStrict( alp[x], exp[x]) );
+
     while not ForAll( l, x -> x = true ) do
         i    := PositionProperty(l, x -> x = false );
         B[i] := Int( Floor( Float( alp[i] / exp[i] ) ) );
         y    := (gen[i] ^ -B[i]) * y;
         alp := List( [1..n], x -> Exponents(y)[d[x]]);
-        l   := List( [1..n], x -> IntegerOrder( alp[x], exp[x]) );
+        l   := List( [1..n], x -> IntegerOrderStrict( alp[x], exp[x]) );
     od;
 
     return rec( y := y, B := B);
+
+end ;
+
+####################################################################
+### Sifting algorithm using a subgroup                           ###
+####################################################################
+
+InstallGlobalFunction( Sifting, function(G, U, g)
+
+    return SiftingWithGens(G, Cgs(U), g);
 
 end );
