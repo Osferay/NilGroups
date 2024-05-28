@@ -15,14 +15,16 @@ Read( "*Gap Directory*/pkg/NilGroups/read.g");
 - series.gi:    Functions to generate the isolator series of a Tau group.
 - iso.gi:       Functions to check if two Tau groups are isomorphic (**CURRENTLY NON WORKING**).
 - order.gi:     Functions to order elements with the order 0<<1<<...<<-1...
-- conjugacy.gi: Functions to solve the following problems:
+- elmcon.gi: Functions to solve the following problems:
   - Centralizer problem. CentralizerNilGroup(G, elms)
-  - Conjugacy problem. IsConjugateNilGroup(G, g, h), IsCanonicalConjugateNilGroup(G, elms)
-  - Canonical conjugate. CanonicalConjugateNilGroup(G, elms)
+  - Conjugacy problem. IsConjugateNilGroup(G, g, h), IsCanonicalConjugateElements(G, elms)
+  - Canonical conjugate. CanonicalConjugateElements(G, elms)
+- subgrpcon.gi: Functions to solve the following problems:
   - Normalizer problem. NormalizerNilGroup(G, U)
   - Subgroup Conjugacy problem. IsConjugateSubgroups(G, U, V), IsCanonicalConjugateSubgroups(G, U, V)
   - Canonical conjugate subgroup. CanonicalConjugateSubgroup(G, U)
 - inter.gi: Intersection functions.
+- prod.gi:  Product functions.
 - deprecated.gi: Functions that are no longer used but can be recovered if necessary.
 - experiments.g: Script to see the performance of the algorithms.
 

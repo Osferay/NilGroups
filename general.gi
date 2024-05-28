@@ -376,23 +376,33 @@ end );
 ### Sifting algorithm using a sequence                           ###
 ####################################################################
 
-SiftingWithGens := function(G, gen, g)
+SiftingWithGens := function(arg)
 
-    local   n,      #Number of generators
+    local   gen,    #Canonical generators of U
+            n,      #Number of generators
+            d,      #List of depths of the generators
+            exp,    #Expoenents of the depths of the generators   
             y,      #Element to return such that gy^-1 is in the subgroup
             B,      #Exponent vector of xy^-1
-            d,      #List of depths of the generators
-            exp,    #Expoenents of the depths of the generators
             alp,    #Exponents of the element in each depth
             l,      #List of conditions
             i;      #Bucle variable
 
-    n   := Length(gen);
+    gen := arg[1];
+    g   := arg[2];
+    if Length(arg) = 2 then  
+        n   := Length(gen);
+        d   := List( gen, Depth );
+        exp := List( gen, Exponents );
+        exp := List( [1..n], x -> exp[x][d[x]]);
+    else
+        n   := arg[3];
+        d   := arg[4];
+        exp := arg[5];
+    fi;
+    
     y   := g;
-    B   := List( gen, x -> 0);
-    d   := List( gen, Depth );
-    exp := List( gen, Exponents );
-    exp := List( [1..n], x -> exp[x][d[x]]);
+    B   := List( [1..n], x -> 0);
     alp := List( [1..n], x -> Exponents(y)[d[x]]);
     l   := List( [1..n], x -> IntegerOrderStrict( alp[x], exp[x]) );
 
@@ -412,8 +422,19 @@ end ;
 ### Sifting algorithm using a subgroup                           ###
 ####################################################################
 
-InstallGlobalFunction( Sifting, function(G, U, g)
+InstallGlobalFunction( Sifting, function(U, g)
 
-    return SiftingWithGens(G, Cgs(U), g);
+    local   gen,    #Canonical generators of U
+            n,      #Number of generators
+            d,      #List of depths of the generators
+            exp;    #Expoenents of the depths of the generators
+            
+    gen := Cgs(U);
+    n   := Length(gen);
+    d   := List( gen, Depth );
+    exp := List( gen, Exponents );
+    exp := List( [1..n], x -> exp[x][d[x]]);
+
+    return SiftingWithGens(gen, g, n, d, exp);
 
 end );

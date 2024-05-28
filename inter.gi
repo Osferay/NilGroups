@@ -93,19 +93,14 @@ IntersectionCyclicSubgroupsNilGroups := function(G, U, V)
             e;      #Lcm of the leading exponent of gU and gV
             
     gU := Cgs(U)[1];
-    #Trivial case
-    if U = V then
-        return [gU];
-    fi;
-
-    #Cyclic case
     gV := Cgs(V)[1];
     d1 := Depth( gU );
     d2 := Depth( gV );
+    
     if d1 <> d2 then
         return [ ];
     else
-        e := Lcm( Exponents( gU )[d1], Exponents( gV )[d2] );
+        e := Lcm( LeadingExponent( gU ), LeadingExponent( gV ) );
         gU := gU^e;
         gV := gV^e;
 
@@ -150,17 +145,18 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
 
     #Trivial cases
     if U = V then
-        return Cgs(U);
+        I := Cgs(U);
 
     elif Size(U) = 1 then
-        return [ ];
+        I := [ ];
 
     elif Size(V) = 1 then
-        return [ ];
+        I := [ ];
 
     #Cyclic case
     elif Length( Cgs(U) ) = 1 and Length( Cgs(V) ) = 1 then
-        return IntersectionCyclicSubgroupsNilGroups(G, U, V);
+        I := IntersectionCyclicSubgroupsNilGroups(G, U, V);
+
     #General Case
     else
         i := 2;
@@ -179,9 +175,11 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
         I   := ShallowCopy(I);
         
         pI  := IntersectionSubgroupsNilGroups( Image(p), p(U), p(V) );
-        
-        if pI[1] in p(G2) then
-            return I;
+
+        if IsEmpty( pI ) then 
+            #Do nothing
+        elif pI[1] in p(G2) then
+            #Do nothing.
         
         else
 
@@ -195,9 +193,9 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
             for i in [1..Length(pI)] do
 
                 b    := PreImagesRepresentative( p, pI[i]);
-                hu   := b * (Sifting(G, U, b).y)^-1;
+                hu   := b * (Sifting(U, b).y)^-1;
                 H[i] := hu;
-                hv   := b * (Sifting(G, V, b).y)^-1;
+                hv   := b * (Sifting(V, b).y)^-1;
                 A[i] := Last(Exponents(hu))-Last(Exponents(hv));
                 
             od;
@@ -211,7 +209,7 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
                 
 
             elif d1 = 0 then
-                x := SiftingWithGens(G, I, H[1]).y;
+                x := SiftingWithGens(I, H[1]).y;
                 Add( I, x, 1);
 
             else
@@ -226,7 +224,7 @@ IntersectionSubgroupsNilGroupsSeries := function(G, U, V, ser, Gn, gn, d, p)
                 if x in G2 then 
                     
                 else
-                    x := SiftingWithGens(G, I, x).y;
+                    x := SiftingWithGens(I, x).y;
                     Add(I, x, 1);
                 fi;
             fi;
