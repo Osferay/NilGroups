@@ -50,6 +50,8 @@ InstallGlobalFunction( "InducedIntersectionSeries", function(G, U)
         i     := i + 1;
         cross := IntersectionSeriesTerm(U, series[i]).cross;
     od;
+
+    Add(iseries, cross);
     
     return iseries;
 
@@ -62,13 +64,11 @@ end );
 
 InstallGlobalFunction( "PcpsOfInducedIntersectionSeries", function(G, U)
 
-    local   series, #Series of G
-            cross,  #Intersection series
+    local   cross,  #Intersection series
             pcps,   #Pcps to return
             i;      #Bucle variable
 
-    series := PcpSeries(G);
-    cross  := InducedIntersectionSeries(U, series);
+    cross  := InducedIntersectionSeries(G, U);
     pcps   := [];
 
     for i in [1..Length(cross)-1] do
