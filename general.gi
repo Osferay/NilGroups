@@ -379,6 +379,7 @@ end );
 SiftingWithGens := function(arg)
 
     local   gen,    #Canonical generators of U
+            g,      #Element to sift
             n,      #Number of generators
             d,      #List of depths of the generators
             exp,    #Expoenents of the depths of the generators   
@@ -390,6 +391,7 @@ SiftingWithGens := function(arg)
 
     gen := arg[1];
     g   := arg[2];
+
     if Length(arg) = 2 then  
         n   := Length(gen);
         d   := List( gen, Depth );
@@ -405,7 +407,7 @@ SiftingWithGens := function(arg)
     B   := List( [1..n], x -> 0);
     alp := List( [1..n], x -> Exponents(y)[d[x]]);
     l   := List( [1..n], x -> IntegerOrderStrict( alp[x], exp[x]) );
-
+    
     while not ForAll( l, x -> x = true ) do
         i    := PositionProperty(l, x -> x = false );
         B[i] := Int( Floor( Float( alp[i] / exp[i] ) ) );

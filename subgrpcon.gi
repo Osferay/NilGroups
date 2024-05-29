@@ -45,7 +45,6 @@ InstallGlobalFunction( "NormalizerNilGroup", function(G,U)
 
 end );
 
-
 #######################################################################
 ## Local function to calculate the preimage of an element            ##
 #######################################################################
