@@ -227,7 +227,7 @@ SomeNilpotentGroups := function( n )
     local   G,          #The group to return
             tau,        #Vector that defines tau groups
             et,         #Expresion tree
-            a,b,c,x,y,z,#
+            a,b,c,d,e,x,#
             rengel,     #Right engel relations
             rengel2,    #Right engel relations
             H,          #Denominator of the nilpotent qoutient
@@ -279,11 +279,10 @@ SomeNilpotentGroups := function( n )
     
     elif n = 6 then
 
-        et := ExpressionTrees( "a", "b", "c", "x", "y" );
-        a := et[1];; b := et[2];; c := et[3];; x := et[4];; y := et[5];;
+        et := ExpressionTrees( "a", "b", "c", "d", "x" );
+        a := et[1];; b := et[2];; c := et[3];; d := et[4];; x := et[5];;
         rengel := LeftNormedComm( [a,x,x,x] );
-        rengel2:= LeftNormedComm( [c,c,x,x,x] );
-        H := rec( generators := et, relations := [rengel^3, rengel2, b^356] );
+        H := rec( generators := et, relations := [rengel^3, b^356] );
         G := NilpotentQuotient( H, [x], 4);
         return G;
 
@@ -297,10 +296,9 @@ SomeNilpotentGroups := function( n )
 
     elif n = 8 then 
         et := ExpressionTrees( 7 );
-        a := et[1];; b := et[2];; c := et[3];; x := et[4];; y := et[5];; z := et[6];;
+        a := et[1];; b := et[2];; c := et[3];; d := et[4];; e := et[5];; x := et[6];;
         rengel := LeftNormedComm( [a,x,x,x] );
-        rengel2:= LeftNormedComm( [c,c,x,x] );
-        H := rec( generators := et, relations := [rengel^2, rengel2^5, b^625, z^512, y^80] );
+        H := rec( generators := et, relations := [rengel^2, b^625, d^80, e^512] );
         G := NilpotentQuotient( H, [x], 2);
         return G;
 
