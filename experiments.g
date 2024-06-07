@@ -42,7 +42,7 @@ Print("Finished experiment one \n");
 ##  Experiments for canonical conjugacy with large nilpotent groups                       ##
 ############################################################################################
 
-AppendTo( filename, "Results for the first experiment\n");
+AppendTo( filename, "Results for the second experiment\n");
 Print("Starting experiment two \n");
 for n in [6,7] do
     ts1 := [];
@@ -78,7 +78,7 @@ Print("Finished experiment two \n");
 ##  Experiments for canonical conjugacy of subgroups with small nilpotent groups          ##
 ############################################################################################
 
-AppendTo( filename, "Results for the first experiment\n");
+AppendTo( filename, "Results for the third experiment\n");
 Print("Starting experiment three \n");
 for n in [2..5] do
     ts1 := [];
@@ -111,7 +111,7 @@ Print("Finished experiment three \n");
 ##  Experiments for canonical conjugacy of subgroups with large nilpotent groups          ##
 ############################################################################################
 
-AppendTo( filename, "Results for the first experiment\n");
+AppendTo( filename, "Results for the fourth experiment\n");
 Print("Starting experiment four \n");
 for n in [8..9] do
     ts1 := [];
@@ -139,5 +139,42 @@ for n in [8..9] do
     AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
 od;
 Print("Finished experiment four \n");
+
+############################################################################################
+##  Experiments for canonical conjugacy of list of elements with small nilpotent groups   ##
+############################################################################################
+
+AppendTo( filename, "Results for the second experiment\n");
+Print("Starting experiment two \n");
+for n in [2..5] do
+    G := SomeNilpotentGroups(n);
+    ts1 := [];
+    ts2 := [];
+    
+    for i in [1..100] do
+        l := RandomListElements(G, 3, "no_id");
+        list := ShallowCopy(l);
+
+        for i in [4..20] do
+            g := Random(l);
+            Add(list, Random(l)^Random(G));
+        od;
+
+        t := Runtime();
+        IsConjugateList(G, list);
+        t := Runtime() - t;
+        Add(ts2, t);
+
+        t := Runtime();
+        can := CanonicalConjugateList(G, list);
+        t := Runtime() - t;
+        Add(ts1, t);
+    od;
+    
+    AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
+    AppendTo( filename, Float( Sum(ts2)/Length(ts2) ), "Time consumed by old algorithm for n equal to ", n, "\n");
+od;
+Print("Finished experiment five. \n");
+
 Unbind(dir);
 Unbind(filename);
