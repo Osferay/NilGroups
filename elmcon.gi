@@ -595,3 +595,75 @@ InstallGlobalFunction( "IsCanonicalConjugateElements", function(G, elms)
     return can;
     
 end );
+
+InstallGlobalFunction( "CanonicalConjugateList", function(G, list)
+
+    local   kan,
+            con_class,
+            positions,
+            i,j,
+            indexes,
+            pos;
+
+    kan       := CanonicalConjugateElements(G, list).kano;
+    con_class := [];
+    positions := [];
+    i         := 1;
+    indexes   := [1..Length(list)];
+    
+    while true do
+        pos := Positions(kan, kan[i]);
+        Add(positions, pos );
+        Add(con_class, kan[i]);
+        i := PositionProperty(indexes, x -> not x in pos);
+        if i <> fail then
+            i := indexes[i];
+            for j in [1..Length(pos)] do
+                Remove(indexes, Position(indexes, pos[j]));
+            od; 
+        else
+            break;
+        fi;
+    od;
+
+    return rec( con_class := con_class, positions := positions);
+
+end );
+
+InstallGlobalFunction( "IsConjugateList", function(G, list)
+
+    local   positions,
+            indexes,
+            con_class,
+            index,
+            p,
+            conj,
+            n;
+
+    positions := [];
+    indexes   := [1..Length(list)];
+    con_class := [];
+    while not IsEmpty(indexes) do
+
+        index := First(indexes);
+        Remove( indexes, 1 );
+        Add   ( con_class, list[index] );
+        p     := [ ];
+
+        for n in indexes do
+            conj := IsConjugateNilGroup(G, list[index], list[n]);
+            if conj <> false then
+                Add   ( p, n );
+            fi;
+        od;
+
+        for n in p do
+            Remove( indexes, Position(indexes, n) );
+        od;
+        Add( p, index, 1);
+        Add( positions, p);
+    od;
+
+    return rec( con_class := con_class, positions := positions);
+
+end );

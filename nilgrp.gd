@@ -36,6 +36,11 @@ DeclareGlobalFunction( "InducedIntersectionSeries" );
 DeclareGlobalFunction( "PcpsOfInducedIntersectionSeries" );
 DeclareGlobalFunction( "IntersectionSubgroupsNilGroups" );
 
+### prod.gi
+
+DeclareGlobalFunction( "SubgroupProductPair" );
+DeclareGlobalFunction( "ProductDecomposition" );
+
 ### conjugacy.gi
 DeclareGlobalFunction( "CentralizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateNilGroup" );
@@ -45,3 +50,5 @@ DeclareGlobalFunction( "NormalizerNilGroup" );
 DeclareGlobalFunction( "IsConjugateSubgroups" );
 DeclareGlobalFunction( "CanonicalConjugateSubgroup");
 DeclareGlobalFunction( "IsCanonicalConjugateSubgroups" );
+DeclareGlobalFunction( "CanonicalConjugateList" );
+DeclareGlobalFunction( "IsConjugateList" );
