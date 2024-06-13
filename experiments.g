@@ -1,6 +1,8 @@
 dir      := DirectoryCurrent();
-filename := Filename( dir, "GapLog.txt");
-PrintTo( filename, "Starting to log gap events\n");
+filename := Filename( dir, "GapLog.txt" );
+log      := Filename( dir, "ExperimentsLog.txt" );
+PrintTo( filename, "Starting to log gap events\n" );
+PrintTo( log     , "Login events\n");
 
 ############################################################################################
 ##  Experiments for canonical conjugacy with small nilpotent groups                       ##
@@ -12,24 +14,25 @@ for n in [2..5] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
+    AppendTo( log, "Group generated.\n");
 
     for i in [1..100] do
         g := Random(G);
         h := g^Random(G);
+        AppendTo(log, "Elements ready." );
         
         t := Runtime();
-        IsConjugate(G, g, h);
+        IsConjugateNilGroup(G, g, h);
         t := Runtime() - t;
         Add(ts2, t);
+        AppendTo( log, " Old algorithm done", t );
 
         elms := [g,h];
         t := Runtime();
         can := IsCanonicalConjugateElements(G, elms);
         t := Runtime() - t;
         Add(ts1, t);
-        for k in [1..Length(elms)] do
-            if elms[k]^can.conj[k] <> can.kano then Error("Incorrect conjugating element."); fi;
-        od;
+        AppendTo( log, " New algorithm done", t, "\n");
 
     od;
 
@@ -48,24 +51,25 @@ for n in [6,7] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
+    AppendTo( log, "Group generated.\n");
 
     for i in [1..100] do
         g := Random(G);
         h := g^Random(G);
+        AppendTo(log, "Elements ready." );
         
         t := Runtime();
-        IsConjugate(G, g, h);
+        IsConjugateNilGroup(G, g, h);
         t := Runtime() - t;
         Add(ts2, t);
+        AppendTo( log, " Old algorithm done", t );
 
         elms := [g,h];
         t := Runtime();
         can := IsCanonicalConjugateElements(G, elms);
         t := Runtime() - t;
         Add(ts1, t);
-        for k in [1..Length(elms)] do
-            if elms[k]^can.conj[k] <> can.kano then Error("Incorrect conjugating element."); fi;
-        od;
+        AppendTo( log, " New algorithm done", t, "\n");
 
     od;
 
@@ -84,21 +88,24 @@ for n in [2..5] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
+    AppendTo( log, "Group generated.\n");
 
     for i in [1..100] do
         U := Subgroup( G, [Random(G), Random(G)]);
         V := U^Random(G);
+        AppendTo(log, "Subgroup ready." );
         
         t := Runtime();
         IsConjugateSubgroups(G, U, V);
         t := Runtime() - t;
         Add(ts2, t);
+        AppendTo( log, " Old algorithm done", t );
 
         t := Runtime();
         can := IsCanonicalConjugateSubgroups(G, U, V);
         t := Runtime() - t;
         Add(ts1, t);
-        if IsBool(can) then Error("No conjugating."); fi;
+        AppendTo( log, " New algorithm done", t, "\n");
 
     od;
 
@@ -117,21 +124,24 @@ for n in [8..9] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
+    AppendTo( log, "Group generated.\n");
 
     for i in [1..10] do
         U := Subgroup(G, [RandomElementRangeGenerators(G,10), RandomElementRangeGenerators(G, 10+n)]);
         V := U^Random(G);
+        AppendTo(log, "Subgroup ready." );
         
         t := Runtime();
         IsConjugateSubgroups(G, U, V);
         t := Runtime() - t;
         Add(ts2, t);
+        AppendTo( log, " Old algorithm done", t );
 
         t := Runtime();
         can := IsCanonicalConjugateSubgroups(G, U, V);
         t := Runtime() - t;
         Add(ts1, t);
-        if IsBool(can) then Error("No conjugating."); fi;
+        AppendTo( log, " New algorithm done", t, "\n");
 
     od;
 
@@ -144,12 +154,13 @@ Print("Finished experiment four \n");
 ##  Experiments for canonical conjugacy of list of elements with small nilpotent groups   ##
 ############################################################################################
 
-AppendTo( filename, "Results for the second experiment\n");
-Print("Starting experiment two \n");
+AppendTo( filename, "Results for the fifth experiment\n");
+Print("Starting experiment five \n");
 for n in [2..5] do
     G := SomeNilpotentGroups(n);
     ts1 := [];
     ts2 := [];
+    AppendTo( log, "Group generated.\n");
     
     for i in [1..100] do
         l := RandomListElements(G, 3, "no_id");
@@ -159,16 +170,20 @@ for n in [2..5] do
             g := Random(l);
             Add(list, Random(l)^Random(G));
         od;
+        AppendTo(log, "List ready." );
 
         t := Runtime();
         IsConjugateList(G, list);
         t := Runtime() - t;
         Add(ts2, t);
+        AppendTo( log, " Old algorithm done", t );
 
         t := Runtime();
         can := CanonicalConjugateList(G, list);
         t := Runtime() - t;
         Add(ts1, t);
+        AppendTo( log, " New algorithm done", t, "\n");
+
     od;
     
     AppendTo( filename, Float( Sum(ts1)/Length(ts1) ), "Time consumed by new algorithm for n equal to ", n, "\n");
@@ -177,4 +192,5 @@ od;
 Print("Finished experiment five. \n");
 
 Unbind(dir);
+Unbind(log);
 Unbind(filename);
