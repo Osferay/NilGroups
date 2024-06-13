@@ -14,7 +14,7 @@ end );
 ## Pref(x, y), generates the prefix of the reduction (+-x) mod y  ##
 ####################################################################
 
-InstallGlobalFunction( Pref, function(x,y)
+InstallGlobalFunction( "Pref", function(x,y)
 
     local   s,      #Minimum x mod y, -x mod y
             pref;   #Value to return
@@ -38,7 +38,7 @@ end );
 ## TauVector(G), generates the vector of relations of G           ##
 ####################################################################
 
-InstallGlobalFunction( TauVector, function(G)
+InstallGlobalFunction( "TauVector", function(G)
 
     local   pcp,    #pcp of G
             i,j,k,  #Bucle variables
@@ -70,7 +70,7 @@ end );
 ##                                      and Hirsch length h       ##
 ####################################################################
 
-InstallGlobalFunction( MatrixRelationsByVector, function(v,h)
+MatrixRelationsByVector := function(v,h)
 
     local   t,      #Matrix of relations
             cont,   #count of the iteration
@@ -97,14 +97,14 @@ InstallGlobalFunction( MatrixRelationsByVector, function(v,h)
 
     return t;
 
-end );
+end ;
 
 ####################################################################
 ## Generates the torsion free group G using a vector v and        ##
 ##                                          Hirsch length h       ##
 ####################################################################
 
-InstallGlobalFunction( TauGroupByVector, function(v,h)
+TauGroupByVector := function(v,h)
 
     local   cont,   #Count of iteration
             ftl,    #Collector of relations
@@ -133,7 +133,6 @@ InstallGlobalFunction( TauGroupByVector, function(v,h)
 
         SetConjugate( ftl, j, i, rel);
         od;
-        
     od;
 
     #Create the group
@@ -141,7 +140,7 @@ InstallGlobalFunction( TauGroupByVector, function(v,h)
 
     return G;
 
-end );
+end ;
 
 #######################################################################
 ## Global function to calculate the a reduced element in a basis     ##
@@ -155,7 +154,7 @@ InstallGlobalFunction( "ReducePcpElement", function( elm, basis )
             v,      #Reduced preimage
             i,      #Bucle variable
             r,      #Residuo
-            x;      #Expoenent of the element in the basis
+            x;      #Exponents of the element in the basis
 
     v     := elm ;
     basis := Reversed(basis);
@@ -382,7 +381,7 @@ SiftingWithGens := function(arg)
             g,      #Element to sift
             n,      #Number of generators
             d,      #List of depths of the generators
-            exp,    #Expoenents of the depths of the generators   
+            exp,    #Exponents of the depths of the generators   
             y,      #Element to return such that gy^-1 is in the subgroup
             B,      #Exponent vector of xy^-1
             alp,    #Exponents of the element in each depth
@@ -410,7 +409,7 @@ SiftingWithGens := function(arg)
     
     while not ForAll( l, x -> x = true ) do
         i    := PositionProperty(l, x -> x = false );
-        B[i] := Int( Floor( Float( alp[i] / exp[i] ) ) );
+        B[i] := Int( alp[i] / exp[i] );
         y    := (gen[i] ^ -B[i]) * y;
         alp := List( [1..n], x -> Exponents(y)[d[x]]);
         l   := List( [1..n], x -> IntegerOrderStrict( alp[x], exp[x]) );
@@ -424,12 +423,12 @@ end ;
 ### Sifting algorithm using a subgroup                           ###
 ####################################################################
 
-InstallGlobalFunction( Sifting, function(U, g)
+InstallGlobalFunction( "Sifting", function(U, g)
 
     local   gen,    #Canonical generators of U
             n,      #Number of generators
             d,      #List of depths of the generators
-            exp;    #Expoenents of the depths of the generators
+            exp;    #Exponents of the depths of the generators
             
     gen := Cgs(U);
     n   := Length(gen);
@@ -440,3 +439,30 @@ InstallGlobalFunction( Sifting, function(U, g)
     return SiftingWithGens(gen, g, n, d, exp);
 
 end );
+
+RandomListElements := function(arg)
+
+    local   G,      #Group 
+            n,      #Number of random elements
+            no_id,  #Flag to not include the identity element
+            l,      #List to return
+            i,      #Bucle variable
+            g;      #Element in each iteration
+
+    G := arg[1];
+    n := arg[2];
+
+    if Length(arg) > 2 then no_id := true; fi;
+
+    l := [];
+    for i in [1..n] do
+        g := Random(G);
+        while no_id and g = One(G) do
+            g := Random(G);
+        od;
+        Add(l, g);
+    od;
+
+    return l;
+end ;
+

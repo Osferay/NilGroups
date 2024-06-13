@@ -6,8 +6,6 @@ InstallTrueMethod( IsTauGroup, IsNilpotentGroup and IsTorsionFree);
 
 DeclareGlobalFunction( "Pref" );
 DeclareGlobalFunction( "TauVector" );
-DeclareGlobalFunction( "MatrixRelationsByVector" );
-DeclareGlobalFunction( "TauGroupByVector" );
 DeclareGlobalFunction( "ReducePcpElement" );
 DeclareGlobalFunction( "RandomElementRangeGenerators" );    
 DeclareGlobalFunction( "RandomSubgroup" );
