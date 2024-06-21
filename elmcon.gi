@@ -45,6 +45,7 @@ CentralizerNilGroupSeries := function( G, elms, pcps )
 
         stb := AddIgsToIgs( stb, Igs(N) );
         C   := SubgroupByIgs( G, stb );
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
 
     od;
 
@@ -89,8 +90,11 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
 
     # the first layer
     if ExponentsByPcp(pcps[1], g) <> ExponentsByPcp(pcps[1], h) then 
+        Info( InfoConjugacy, 1, "Layer 1 done." );
         return false; 
     fi;
+
+    Info( InfoConjugacy, 1, "Layer 1 done." );
 
     C := G;
     k := One(G);
@@ -108,6 +112,7 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
             if exp = 0*exp then
                 stb := rec( stab := gens, prei := c^0 );
             else
+                Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
                 return false;
             fi;
 
@@ -140,6 +145,7 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
         k   := k * stb.prei;
         stb := AddIgsToIgs( stb.stab, Igs(N) );
         C   := SubgroupByIgs( G, stb );
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     
     od;
 
@@ -342,6 +348,8 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         Add( h, G.1^( Exponents(elm)[1] ) );
         Add( k, One(G) );
     od;
+    Info( InfoConjugacy, 1, "Layer 1 done." );
+
 
     for i in [2..Length(pcps)] do
 
@@ -405,6 +413,8 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             stb  := AddIgsToIgs( gens, NumeratorOfPcp(pcp) );
             C[j] := SubgroupByIgs( G, stb );
         od;
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+    
     od;
 
     return rec(conj := k, kano := h, cent := C);
@@ -464,10 +474,14 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
     for i in [2..Length(elms)] do
         if Exponents( elms[i] )[1] <> ref then
+            Info( InfoConjugacy, 1, "Layer 1 done." );
             return false;
         fi;
         k[i] := One(G);
     od;
+
+    Info( InfoConjugacy, 1, "Layer 1 done." );
+
 
     for i in [2..Length(pcps)] do
 
@@ -546,12 +560,16 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
 
             if matrix = 0*matrix and exp <> 0 then 
+                Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
                 return false;
 
             elif o = 0 then
                 # get solution if necessary
                 solv := PcpSolutionIntMat( matrix, [exp] );
-                if IsBool(solv) then return false; fi;
+                if IsBool(solv) then 
+                    Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                    return false; 
+                fi;
     
                 # calculate elements
                 solv := MappedVector( solv, gens );
@@ -560,7 +578,10 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
             else
                 solv := PcpSolutionFFEMat( matrix, exp, o);
-                if IsBool(solv) then return false; fi;
+                if IsBool(solv) then 
+                    Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                    return false;
+                fi;
 
                 gens := Reversed( Reversed(gens){[1..Length(solv)]} );
                 solv := MappedVector( solv, gens );
@@ -568,7 +589,7 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             fi;
 
         od;
-
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return rec(kano := h, conj := k, cent := C );
@@ -580,21 +601,29 @@ end;
 ## using canonical conjugate elements                               ##
 ######################################################################
 
-InstallGlobalFunction( "IsCanonicalConjugateElements", function(G, elms)
+InstallGlobalFunction( "IsCanonicalConjugateElements", function( arg )
 
-    local   pcps,
-            can;
+    local   G,      #Group
+            elms,   #Elements
+            i,      #Bucle variable
+            pcps;   #Pcps
 
-    if not IsList(elms) then
-        elms := [elms];
-    fi;
+    G := arg[1];
+    elms := [];
+
+    for i in [2..Length(arg)] do
+        Add(elms, arg[i]);
+    od;
 
     pcps := PcpsBySeries( PcpSeries(G) );
-    can  := IsCanonicalConjugateNilGroupSeries(G, elms, pcps);
-
-    return can;
+    return IsCanonicalConjugateNilGroupSeries(G, elms, pcps);
     
 end );
+
+######################################################################
+## Global function to calculate solve the conjugacy problem in G    ##
+## of a list of elements using canonical conjugates                 ##
+######################################################################
 
 InstallGlobalFunction( "CanonicalConjugateList", function(G, list)
 
@@ -629,6 +658,11 @@ InstallGlobalFunction( "CanonicalConjugateList", function(G, list)
     return rec( con_class := con_class, positions := positions);
 
 end );
+
+######################################################################
+## Global function to calculate solve the conjugacy problem in G    ##
+## of a list of elements                                            ##
+######################################################################
 
 InstallGlobalFunction( "IsConjugateList", function(G, list)
 

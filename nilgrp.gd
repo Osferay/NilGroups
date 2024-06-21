@@ -1,4 +1,10 @@
+### Extra packages.
+
 LoadPackage( "nq" );
+
+### info
+
+DeclareInfoClass( "InfoConjugacy" );
 
 ### General.gi
 DeclareGlobalFunction( "ReducePcpElement" );

@@ -24,7 +24,7 @@ NormalizerNilGroupSeries := function(G, U, efa)
         nat := NaturalHomomorphismByNormalSubgroup(N, H);
         N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(h) ) );
         H   := Hi;
-
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return N;
@@ -134,7 +134,7 @@ IsConjugateSubgroupsNilGroup := function(G, U, V)
             #Update the normalizer
             N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
         fi;
-        
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return x;
@@ -260,7 +260,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
         N   := kan.N;
 
         Add( gK, kan.kano[1] );
-
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     od;
     
     K  := Subgroup( G, gK );
@@ -340,7 +340,7 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
             Add( gK, kU.kan );
 
         fi;
-
+        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
     od;
     
     K    := Subgroup( G, gK );
