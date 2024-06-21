@@ -4,7 +4,6 @@
 
 SomeNilpotentGroups := function( n )
     local   G,          #The group to return
-            tau,        #Vector that defines tau groups
             et,         #Expresion tree
             a,b,c,d,e,x,#Expresion tree variables
             rengel,     #Right engel relations
@@ -13,7 +12,7 @@ SomeNilpotentGroups := function( n )
     
     if n = 1 then 
         #Torsion-free of hirsch length 5
-        flt := FromTheLeftCollector(5);
+        ftl := FromTheLeftCollector(5);
         SetConjugate( ftl, 2, 1, [2, 1, 3, 11] );
         SetConjugate( ftl, 3, 1, [3, 1, 4, 8]  );
         SetConjugate( ftl, 3, 2, [3, 1, 5, 15] );
