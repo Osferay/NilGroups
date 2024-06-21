@@ -1,31 +1,11 @@
 LoadPackage( "nq" );
 
 ### General.gi
-DeclareProperty( "IsTauGroup", IsGroup );
-InstallTrueMethod( IsTauGroup, IsNilpotentGroup and IsTorsionFree);
-
-DeclareGlobalFunction( "Pref" );
-DeclareGlobalFunction( "TauVector" );
 DeclareGlobalFunction( "ReducePcpElement" );
 DeclareGlobalFunction( "RandomElementRangeGenerators" );    
 DeclareGlobalFunction( "RandomSubgroup" );
 DeclareGlobalFunction( "ConjugacyOrder" );
 DeclareGlobalFunction( "Sifting" );
-
-### Exam.gi
-DeclareGlobalFunction( "MinimalTauGroups" );
-
-### Series.gi
-DeclareGlobalFunction( "IsolatorSeries" );
-DeclareGlobalFunction( "PcpsOfIsolatorSeries" );
-DeclareGlobalFunction( "TauType" );
-DeclareGlobalFunction( "TwoStepCentralizer" );
-DeclareGlobalFunction( "ExtendedIsolatorSeries" );
-DeclareGlobalFunction( "ExtendedTauType" );
-
-### Iso.gi
-DeclareGlobalFunction( "IsomorphismTauGroup" );
-DeclareGlobalFunction( "SameGenus" );
 
 ### Inter.gi
 

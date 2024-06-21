@@ -10,7 +10,7 @@ PrintTo( log     , "Login events\n");
 
 AppendTo( filename, "Results for the first experiment\n");
 Print("Starting experiment one \n");
-for n in [2..5] do
+for n in [1..4] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
@@ -47,7 +47,7 @@ Print("Finished experiment one \n");
 
 AppendTo( filename, "Results for the second experiment\n");
 Print("Starting experiment two \n");
-for n in [6,7] do
+for n in [5,6] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
@@ -84,7 +84,7 @@ Print("Finished experiment two \n");
 
 AppendTo( filename, "Results for the third experiment\n");
 Print("Starting experiment three \n");
-for n in [2..5] do
+for n in [1..4] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
@@ -120,7 +120,7 @@ Print("Finished experiment three \n");
 
 AppendTo( filename, "Results for the fourth experiment\n");
 Print("Starting experiment four \n");
-for n in [8..9] do
+for n in [7,8] do
     ts1 := [];
     ts2 := [];
     G := SomeNilpotentGroups(n);
@@ -156,7 +156,7 @@ Print("Finished experiment four \n");
 
 AppendTo( filename, "Results for the fifth experiment\n");
 Print("Starting experiment five \n");
-for n in [2..5] do
+for n in [1..4] do
     G := SomeNilpotentGroups(n);
     ts1 := [];
     ts2 := [];
