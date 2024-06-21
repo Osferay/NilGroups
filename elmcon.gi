@@ -609,11 +609,14 @@ InstallGlobalFunction( "IsCanonicalConjugateElements", function( arg )
             pcps;   #Pcps
 
     G := arg[1];
-    elms := [];
-
-    for i in [2..Length(arg)] do
-        Add(elms, arg[i]);
-    od;
+    if IsList( arg[2] ) then
+        elms := arg[2];
+    else
+        elms := [];
+        for i in [2..Length(arg)] do
+            Add(elms, arg[i]);
+        od;
+    fi;
 
     pcps := PcpsBySeries( PcpSeries(G) );
     return IsCanonicalConjugateNilGroupSeries(G, elms, pcps);
