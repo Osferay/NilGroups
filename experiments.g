@@ -17,7 +17,7 @@ for n in [1..4] do
     AppendTo( log, "Group generated.\n");
 
     for i in [1..100] do
-        g := Random(G);
+        g := RandomElementRangeGenerators(G, 1);
         h := g^Random(G);
         AppendTo(log, "Elements ready." );
         

@@ -75,10 +75,7 @@ InstallGlobalFunction( "RandomElementRangeGenerators",
     for i in [1..Length( pcp )] do
         if i in [n..m] then
             if rel[i] = 0 then
-                g[i] := Random( Integers );
-                while g[i] = 0 do
-                    g[i] := Random( Integers );
-                od;
+                g[i] := Random( -10000, 10000 );
             else
                 g[i] := Random( 1, rel[i]-1 );
             fi;
