@@ -4,7 +4,9 @@ LoadPackage( "nq" );
 
 ### info
 
-DeclareInfoClass( "InfoConjugacy" );
+DeclareInfoClass( "InfoConjugacyElements" );
+DeclareInfoClass( "InfoConjugacySubgroups" );
+
 
 ### General.gi
 DeclareGlobalFunction( "ReducePcpElement" );

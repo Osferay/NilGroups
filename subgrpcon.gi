@@ -17,6 +17,8 @@ NormalizerNilGroupSeries := function(G, U, efa)
     N    := G;
     H  := Subgroup(U, [ genU[1] ]);
 
+    Info( InfoConjugacySubgroups, 1, StringFormatted("The algorithm has to process {} layers.", Length(genU)-1 ) );
+
     for i in [2..Length(genU)] do
     
         Hi := Subgroup(U, genU{[1..i]});
@@ -24,7 +26,7 @@ NormalizerNilGroupSeries := function(G, U, efa)
         nat := NaturalHomomorphismByNormalSubgroup(N, H);
         N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(h) ) );
         H   := Hi;
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacySubgroups, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return N;
@@ -107,6 +109,8 @@ IsConjugateSubgroupsNilGroup := function(G, U, V)
         return false;
     fi;
 
+    Info( InfoConjugacySubgroups, 1, StringFormatted("The algorithm has to process {} layers.", Length(genU) ) );
+
     for i in [1..Length( genU )] do
         #Take the intersection
         Hi := Subgroup(Ui, genU{[1..i]});
@@ -134,7 +138,7 @@ IsConjugateSubgroupsNilGroup := function(G, U, V)
             #Update the normalizer
             N   := PreImage( nat, CentralizerNilGroup( Image(nat), nat(k) ) );
         fi;
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacySubgroups, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return x;
@@ -247,6 +251,8 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
     Ui := Subgroup( U, [ ]);
     gK := [];
 
+    Info( InfoConjugacySubgroups, 1, StringFormatted("The algorithm has to process {} layers.", Length(gU) ) );
+
     for i in [1..Length(gU)] do
 
         u   := NormedPcpElement( gU[i]^x );
@@ -260,7 +266,7 @@ CanonicalConjugateSubgroupNilGroup := function(G, U)
         N   := kan.N;
 
         Add( gK, kan.kano[1] );
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacySubgroups, 1, StringFormatted("Layer {} done.", i) );
     od;
     
     K  := Subgroup( G, gK );
@@ -316,6 +322,8 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
         return false;
     fi;
 
+    Info( InfoConjugacySubgroups, 1, StringFormatted("The algorithm has to process {} layers.", Length(gU)-1 ) );
+
     for i in [1..Length(gU)] do
 
         u := NormedPcpElement( gU[i]^x );
@@ -340,7 +348,7 @@ IsCanonicalConjugateSubgroupNilGroup := function(G, U, V)
             Add( gK, kU.kan );
 
         fi;
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacySubgroups, 1, StringFormatted("Layer {} done.", i) );
     od;
     
     K    := Subgroup( G, gK );

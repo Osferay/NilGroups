@@ -17,6 +17,8 @@ CentralizerNilGroupSeries := function( G, elms, pcps )
 
     C := G;
 
+    Info( InfoConjugacyElements, 1, StringFormatted("The algorithm has to process {} layers.", Length(pcps)-1) );
+
     for i in [2..Length(pcps)] do
 
         pcp := pcps[i]; 
@@ -45,7 +47,7 @@ CentralizerNilGroupSeries := function( G, elms, pcps )
 
         stb := AddIgsToIgs( stb, Igs(N) );
         C   := SubgroupByIgs( G, stb );
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
 
     od;
 
@@ -90,11 +92,10 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
 
     # the first layer
     if ExponentsByPcp(pcps[1], g) <> ExponentsByPcp(pcps[1], h) then 
-        Info( InfoConjugacy, 1, "Layer 1 done." );
         return false; 
     fi;
 
-    Info( InfoConjugacy, 1, "Layer 1 done." );
+    Info( InfoConjugacyElements, 1, StringFormatted("The algorithm has to process {} layers.", Length(pcps)-1) );
 
     C := G;
     k := One(G);
@@ -112,7 +113,7 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
             if exp = 0*exp then
                 stb := rec( stab := gens, prei := c^0 );
             else
-                Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
                 return false;
             fi;
 
@@ -145,7 +146,7 @@ IsConjugateNilGroupSeries := function(G, g, h, pcps )
         k   := k * stb.prei;
         stb := AddIgsToIgs( stb.stab, Igs(N) );
         C   := SubgroupByIgs( G, stb );
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
     
     od;
 
@@ -348,8 +349,7 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
         Add( h, G.1^( Exponents(elm)[1] ) );
         Add( k, One(G) );
     od;
-    Info( InfoConjugacy, 1, "Layer 1 done." );
-
+    Info( InfoConjugacyElements, 1, StringFormatted("The algorithm has to process {} layers.", Length(pcps)-1) );
 
     for i in [2..Length(pcps)] do
 
@@ -413,7 +413,7 @@ CanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             stb  := AddIgsToIgs( gens, NumeratorOfPcp(pcp) );
             C[j] := SubgroupByIgs( G, stb );
         od;
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
     
     od;
 
@@ -474,14 +474,11 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
 
     for i in [2..Length(elms)] do
         if Exponents( elms[i] )[1] <> ref then
-            Info( InfoConjugacy, 1, "Layer 1 done." );
             return false;
         fi;
         k[i] := One(G);
     od;
-
-    Info( InfoConjugacy, 1, "Layer 1 done." );
-
+    Info( InfoConjugacyElements, 1, StringFormatted("The algorithm has to process {} layers.", Length(pcps)-1) );
 
     for i in [2..Length(pcps)] do
 
@@ -560,14 +557,14 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             matrix := List( gens, x -> [ Exponents( Comm(x,c) )[i] ] );
 
             if matrix = 0*matrix and exp <> 0 then 
-                Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
                 return false;
 
             elif o = 0 then
                 # get solution if necessary
                 solv := PcpSolutionIntMat( matrix, [exp] );
                 if IsBool(solv) then 
-                    Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                    Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
                     return false; 
                 fi;
     
@@ -579,7 +576,7 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             else
                 solv := PcpSolutionFFEMat( matrix, exp, o);
                 if IsBool(solv) then 
-                    Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+                    Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
                     return false;
                 fi;
 
@@ -589,7 +586,7 @@ IsCanonicalConjugateNilGroupSeries := function(G, elms, pcps )
             fi;
 
         od;
-        Info( InfoConjugacy, 1, StringFormatted("Layer {} done.", i) );
+        Info( InfoConjugacyElements, 1, StringFormatted("Layer {} done.", i) );
     od;
 
     return rec(kano := h, conj := k, cent := C );
