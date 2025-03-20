@@ -1,6 +1,6 @@
 # Introduction
 
-Functions to work with finitely presented nilpotent groups. This code is complementary to the paper [4].
+Functions to work with finitely presented nilpotent groups. This code complements paper [4].
 To install al the functions save the files inside the GAP directory/pkg/NilGroups and then run in GAP.
 ```
 Read( "*Gap Directory*/pkg/NilGroups/read.g");
