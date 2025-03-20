@@ -1,6 +1,6 @@
 # Introduction
 
-Functions to work with finitely presented nilpotent groups.
+Functions to work with finitely presented nilpotent groups. This code is complementary to the paper [4].
 To install al the functions save the files inside the GAP directory/pkg/NilGroups and then run in GAP.
 ```
 Read( "*Gap Directory*/pkg/NilGroups/read.g");
@@ -60,7 +60,7 @@ Script to see the performance of the algorithms using the groups in exam.gi. The
 
 # Cites
 
-> - Eddie H. Lo. Finding intersections and normalizers in finitely generated nilpotent groups. J. Symbolic Comput., 25(1):45–59, 1998.
-> - Charles C. Sims. Computation with finitely presented groups, volume 48 of Encyclopedia of Mathematics and its Applications. Cambridge University Press, Cambridge, 1994.
-> - B. Eick and G. Ostheimer. On the orbit-stabilizer problem for integral matrix actions of polycyclic groups. Mathematics of Computation,72(243):1511–1529, 2003.
-> - B. Eick and O. F. Ayala. The conjugacy problem and canonical representatives in finitely generated nilpotent groups.
+1. Eddie H. Lo. Finding intersections and normalizers in finitely generated nilpotent groups. J. Symbolic Comput., 25(1):45–59, 1998.
+2. Charles C. Sims. Computation with finitely presented groups. Volume 48 of Encyclopedia of Mathematics and its Applications. Cambridge University Press, Cambridge, 1994.
+3. B. Eick and G. Ostheimer. On the orbit-stabilizer problem for integral matrix actions of polycyclic groups. Mathematics of Computation,72(243):1511–1529, 2003.
+4. B. Eick and O. Fernández Ayala. The conjugacy problem and canonical representatives in finitely generated nilpotent groups. J. Symbolic Comput. 130:102422, 2025.
