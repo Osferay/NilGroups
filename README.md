@@ -56,7 +56,7 @@ Setting the information level to 1 of InfoConjugacy will show the progres of the
   - **SubgroupProductPair( G, U, V )** : Returns a product pair of U and V.
   - **ProductDecomposition( G, U, V, g)** : Returns, if posible, a descomposition of g as a multiplication of elements in U and V 
 ### experiments.g: 
-Script to see the performance of the algorithms using the groups in exam.gi. The results are avaribale in [B. Eick and O. F. Ayala].
+Script to see the performance of the algorithms using the groups in exam.gi. The results are avaribale in [4].
 
 # Cites
 
