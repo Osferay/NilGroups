@@ -13,7 +13,7 @@ SubgroupProductPairCyclic := function(G, U, V)
 end;
 
 
-InstallGlobalFunction( SubgroupProductPair, function(G, U, V)
+InstallGlobalFunction( "SubgroupProductPair", function(G, U, V)
 
     local   ser,    #Series of G
             Gn,     #Last term of ser
